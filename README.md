@@ -7,9 +7,10 @@ The mobile form asks only for name and phone, hides the referral from the
 shareable URL after opening, and integrates the supplied transparent Fox logo
 into the offer card so the booking action remains visible in the first viewport.
 
-**Status:** the claim flow and QuickBooks Sandbox happy path are deployed and
-tested: protected OAuth, encrypted D1 tokens, scheduled invoice verification and
-one synthetic paid-invoice reward. Production remains disabled. Start with the
+**Status:** the claim flow, protected owner dashboard, and QuickBooks Sandbox
+happy path are deployed and tested: partner/lead/commission ledgers, QR assets,
+protected OAuth, encrypted D1 tokens, scheduled invoice verification and one
+synthetic paid-invoice reward. Production remains disabled. Start with the
 [staging setup guide for first-time operators](docs/SETUP.md); use the
 [technical QuickBooks runbook](docs/QUICKBOOKS_SETUP.md) for implementation,
 recovery and security details.
@@ -48,7 +49,10 @@ browser tests intercept that navigation without contacting Shop Genie.
 | [migrations/0002_fixed_first_claim.sql](migrations/0002_fixed_first_claim.sql) | Fixed rewards, first-claim/30-day guards and customer-level reward uniqueness |
 | [migrations/0003_quickbooks_sandbox.sql](migrations/0003_quickbooks_sandbox.sql) | Encrypted connection, OAuth state, token attempts, durable jobs/evidence and atomic authority guard |
 | [migrations/0004_calendar_day_policy.sql](migrations/0004_calendar_day_policy.sql) | Shop-local calendar-day eligibility, explicit payment dates, preserved legacy rewards |
+| [migrations/0005_admin_dashboard.sql](migrations/0005_admin_dashboard.sql) | Partner edit versions and redacted owner mutation audit |
 | [src/claim.ts](src/claim.ts) | Validated/idempotent `POST /api/claim` |
+| [src/admin/route.ts](src/admin/route.ts) | Protected partner management, lead/commission ledgers and SVG QR assets |
+| [public/admin/](public/admin/) | Responsive owner dashboard UI |
 | [public/claim.html](public/claim.html) | Responsive customer form with external JS/CSS |
 | [src/quickbooks/process-invoice.ts](src/quickbooks/process-invoice.ts) | Current invoice/payment/customer verification and reward orchestration |
 | [src/quickbooks/contracts.ts](src/quickbooks/contracts.ts) | Server-only provider/evidence and store interfaces |
@@ -138,10 +142,11 @@ Tests use Node's SQLite engine plus a D1 method bridge and synthetic QBO readers
 They cover validation, SQL constraints, duplicate claims/conversions, payment
 allocation, currency, first-claim/30-day boundaries, customer-level duplicate
 prevention, ambiguous contact, revocation, raw webhook signatures,
-and redacted failures. Browser tests exercise actual local Pages -> Worker -> D1,
-redirect-on-success, missing referral, failure/retry, and mobile overflow.
+redacted failures, ledger filtering/totals and QR payload isolation. Browser tests
+exercise actual local Pages -> Worker -> D1, redirect-on-success, missing referral,
+failure/retry, and responsive claim/admin layouts.
 
-Confirmed on Windows, 2026-10-09: dependency install, typecheck, unit/database
+Confirmed on Windows, 2026-10-10: dependency install, typecheck, unit/database
 tests, Worker bundle, local D1 migration/seed, both dev servers, Chrome browser
 tests and visual inspection at desktop/mobile widths. See
 [validation evidence and limits](docs/STATUS.md). `npm ci --ignore-scripts` is the
@@ -151,7 +156,8 @@ lockfile-based fresh-install command; initial setup used `npm install`.
 
 Existing names: `DB`, `APP_ENV`, `PUBLIC_ORIGIN`, `REFERRAL_API`, and optional
 `CLAIM_RATE_LIMITER` (required by the claim handler outside localhost).
-QuickBooks adds `QB_*`/`ACCESS_*` bindings listed in QUICKBOOKS_SETUP.md.
+QuickBooks adds `QB_*`/`ACCESS_*` bindings, and the dashboard uses the separate
+`ADMIN_ACCESS_AUD`, all listed in QUICKBOOKS_SETUP.md.
 `QB_CLIENT_ID` and `QB_CLIENT_SECRET` are Worker secrets; tokens are encrypted in
 D1 with a separate `QB_TOKEN_KEY`. Do not put credential values in config or source.
 The configured database ID identifies the personal-account staging D1. Local
@@ -162,8 +168,9 @@ For a future authorized release, follow [OPERATIONS.md](docs/OPERATIONS.md).
 The Worker stays private behind the Pages service binding. Configure real isolated
 D1 resources, exact HTTPS origin, abuse controls and reviewed privacy/retention
 before collecting live contact data. The Sandbox connection, Access login, owner
-consent, company confirmation, and paid-invoice read passed. Genuine Intuit webhook
-delivery, natural token renewal, and production ingress contracts remain open.
+consent, company confirmation, paid-invoice reads, and natural token renewal passed.
+Genuine authorized-realm Intuit webhook delivery and production ingress contracts
+remain open.
 
 - [Requirements / decisions](docs/REQUIREMENTS.md)
 - [Beginner staging setup](docs/SETUP.md)

@@ -4,6 +4,7 @@ import { oauthRoute } from './quickbooks/oauth.ts';
 import { webhook } from './quickbooks/inbox.ts';
 import { runScheduled } from './quickbooks/jobs.ts';
 import { HttpError, json } from './http.ts';
+import { adminRoute } from './admin/route.ts';
 
 export default {
   async fetch(request: Request, env: QbEnv): Promise<Response> {
@@ -16,6 +17,7 @@ export default {
       if (path === '/api/quickbooks/webhook') {
         return await webhook(request,env);
       }
+      if (path.startsWith('/api/admin/')) return await adminRoute(request,env);
       if (path.startsWith('/api/quickbooks/')) return await oauthRoute(request,env);
       return json({ success: false, error: 'NOT_FOUND' }, 404);
     } catch (error) {

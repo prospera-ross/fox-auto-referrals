@@ -8,8 +8,9 @@ The implementation is sandbox-only. Personal-account Cloudflare staging was
 deployed at https://fox-referrals.pages.dev on 2026-10-09. Migrations, secrets,
 Access/MFA, owner identity and the sandbox realm are configured. OAuth is active;
 an authenticated paid-invoice test created exactly one synthetic $10 commission.
-The successful conversion came from reconciliation polling; genuine webhook
-delivery and natural token renewal remain pending evidence. See STATUS.md before
+The successful conversion came from reconciliation polling. Natural background
+renewal passed repeatedly; genuine authorized-realm webhook delivery remains
+pending despite a successful signed Intuit portal test. See STATUS.md before
 repeating any setup.
 
 ## 1. Configure the public routes and operator access
@@ -63,6 +64,7 @@ dashboard settings; keep config and dashboard consistent):
 | `QB_TIME_ZONE` | `America/New_York` — configured for the Maryland shop |
 | `ACCESS_TEAM_DOMAIN` | Your exact issuer, such as `https://your-team.cloudflareaccess.com` |
 | `ACCESS_AUD` | Application audience tag from Access |
+| `ADMIN_ACCESS_AUD` | Distinct audience tag for the owner dashboard Access application |
 | `ACCESS_ADMIN_SUB` | Your owner account's stable subject from an authenticated Access identity; never trust an unverified token's contents |
 | `QB_ENABLED` | Keep `false` until the required settings/secrets/database are ready, then `true` |
 

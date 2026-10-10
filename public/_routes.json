@@ -1,1 +1,1 @@
-{"version":1,"include":["/api/claim","/api/quickbooks/*"],"exclude":[]}
+{"version":1,"include":["/api/claim","/api/quickbooks/*","/api/admin/*"],"exclude":[]}

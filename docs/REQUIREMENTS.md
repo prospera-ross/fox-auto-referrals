@@ -103,6 +103,21 @@ keyboard/responsive checks alone do not establish conformance. Owners are gaps.
 
 ## Later phases and exclusions
 
+### Admin Dashboard phase
+
+| ID | Accepted requirement / acceptance criterion | Priority |
+| --- | --- | --- |
+| ADM-01 | Owner-only dashboard for the existing single Fox shop; Access JWT and exact owner subject required for the page and every API | P0 |
+| ADM-02 | Register and manage referral partners with name, normalized phone, stable referral code, fixed reward cents and active state; deactivate instead of deleting history | P0 |
+| ADM-03 | View and filter leads by partner/status/date; attribution and processing-owned statuses are read-only | P0 |
+| ADM-04 | View and total recorded commissions by partner/status/date; no transfer, payout or QuickBooks write control | P0 |
+| ADM-05 | Preview/download a QR containing only the exact public claim URL; no reward, contact or tracking internals in the asset | P0 |
+| ADM-06 | Audit admin mutations without request bodies, contacts or credentials; reject stale edits and validate pagination, authorization, keyboard/mobile and QR decoding | P0 |
+
+Implementation sequencing and proposed API/design details are in
+[ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md). Numeric business reward limits remain
+unresolved for production; the existing schema ceiling is only defensive.
+
 1. Runnable local claim flow, schema, tested invoice-processing core, contracts.
 2. Approved OAuth/credential lifecycle, sandbox REST/webhook/recovery integration.
 3. Independent review, operational exercises and enforced release/activation gates.

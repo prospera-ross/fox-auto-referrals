@@ -13,6 +13,7 @@ export interface QbEnv extends Env {
   QB_TIME_ZONE?: string;
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;
+  ADMIN_ACCESS_AUD?: string;
   ACCESS_ADMIN_SUB?: string;
 }
 export interface Connection {

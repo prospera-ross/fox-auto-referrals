@@ -1,7 +1,7 @@
-﻿# Current handoff — 2026-10-09
+﻿# Current handoff — 2026-10-10
 
 ## Objective and authorization
-Complete personal-account Cloudflare staging, then validate QuickBooks Sandbox.
+Build the owner Admin Dashboard while completing QuickBooks Sandbox validation.
 User explicitly authorized account setup/deployment; Wrangler login completed.
 No production, paid plan/domain purchase, Git initialization or commits authorized.
 
@@ -21,17 +21,18 @@ No production, paid plan/domain purchase, Git initialization or commits authoriz
 ## Cloud staging executed
 - Account: 75d4cc849d22526730a76a2f200446d7 (user's personal account).
 - Pages: https://fox-referrals.pages.dev; Worker: fox-referrals-api.
-- D1 fox-referrals: c141811c-68fe-4e89-bb88-739f2449442c, migrations 0001-0004 applied.
+- D1 fox-referrals: c141811c-68fe-4e89-bb88-739f2449442c, migrations 0001-0005 applied.
 - Synthetic staging partner seeded: referral code staging-restaurant.
 - Private Worker deployed; workers_dev/preview URLs disabled; cron registered.
-- Pages deployment: https://0abf0db8.fox-referrals.pages.dev.
+- Latest Pages deployment: https://5523df21.fox-referrals.pages.dev.
 - Separate remote QB_TOKEN_KEY generated/uploaded without displaying its value.
 - QB_ENABLED=true; all four QB secrets uploaded; OAuth active for sandbox realm.
-- ACCESS_* and realm deployed; version c70a7d08-f377-4345-81b4-cddc89fffc0c.
+- ACCESS_* and realm deployed; Worker e2fc3620-39be-4baa-91e7-2d503b936b92.
 - Corrected CloudEvents `void` (portal screenshot), retains legacy job review guard.
 - Access organization fox-referrals-staging.cloudflareaccess.com now configured.
-- Admin app 722b3386-0e88-44cc-9215-bc85a1a91dca allows owner email only,
-  with email OTP plus independent MFA (TOTP/biometrics/security key), 15m sessions.
+- Access app 722b3386-0e88-44cc-9215-bc85a1a91dca protects /api/quickbooks/*
+  with owner-only email OTP plus independent MFA and 15-minute sessions.
+- Dashboard Access app 2f09e0df-4e6e-48ad-9739-2aa5afb90968 protects /api/admin/* with owner-only MFA and a distinct audience.
 - Exact webhook bypass app: 22d91fd5-dd20-40c2-818d-b89de06589d7.
 - Anonymous connect/status/callback redirect to Access; claim stays 200.
 - Webhook GET returns 405; unsigned POST returns 400 INVALID_WEBHOOK after activation.
@@ -40,11 +41,10 @@ No production, paid plan/domain purchase, Git initialization or commits authoriz
 
 ## Validation
 - Windows Node 24.18.0/npm 11.16.0; TypeScript, bundle/deployment succeeded.
-- Prior 31 Node/SQLite and 3 Chrome tests passed. Latest TypeScript and QBO run:
-  30 passed; prior real Chrome OAuth form regression passed.
+- Latest local suite: 43 Node/SQLite tests, TypeScript and Worker bundle pass.
+  Admin Chrome UI test and prior three claim/OAuth Chrome tests pass.
 - Browser coverage: real local save, retry, mobile layout, logo and intercepted
   OAuth redirect/CSP. Desktop/mobile screenshots inspected.
-- Local migrations/seed reapplied after changing configured D1 identifier.
 
 ## Local state
 - Private GitHub repository published: prospera-ross/fox-auto-referrals.
@@ -56,25 +56,25 @@ No production, paid plan/domain purchase, Git initialization or commits authoriz
 - No tunnel or custom domain. Public staging hosts OAuth/webhooks; Windows runs
   local development independently.
 
-## Immediate next step
+## Current state and next step
 Access identity/MFA, callback, webhook events/secrets and realm are configured.
 Sandbox Company US 4e3b, US Plus, realm 9341458457635639 is active.
-Probe isolated Workers `redirect:error` TypeError while manual mode returned
-Intuit HTTP 400. Token, revoke and reads use manual no-follow with 3xx rejection.
-Provider disconnected; generation 3 retired. Generation 5 now active, company
-confirmed, encrypted token version 1 (about 101 refresh days at issuance).
+OAuth calls use manual no-follow with 3xx rejection; the isolated probe gets Intuit 400.
+Generations 3/5 retired. Generation 5 passed 16 natural renewals (token v1 to v17).
+Generation 7 is active/confirmed with encrypted token v1 after revoke/reconnect.
 Cron queried 31 days of invoices; one Intuit sample remains safely quarantined.
 Synthetic referral +12025550162 matched QBO customer 100000001 and paid invoice
 145/doc 1038 ($86.40). Lead is COMPLETED; exactly one PENDING conversion records
 $10.00 reward, payment/claim date 2026-10-09, policy v2 and evidence reference.
-Repeated scan retained one reward, confirming effect deduplication; terminal jobs
-now stay done and mutable outcomes retry every five minutes. Conversion was created
-by reconciliation polling; no genuine Intuit webhook row observed yet.
+Repeated scans retained one reward; real create/update callbacks remain absent.
+Admin API, migration 0005 and redesigned dashboard UI are deployed. Access redirect
+and authenticated reads pass: 2 leads, 1 commission and $10 pending. Filters, QR
+SVG delivery/download and exact URL decoding pass; live CSS/JS match local hashes.
+Next: authenticated live visual smoke, then resume genuine webhook monitoring.
 
 ## Limits
 Production blocked by code; G01-G08 unsatisfied, ASVS mapping partial.
-Owner Access/JWT and QBO sandbox happy path are verified. Genuine Intuit webhook,
-token refresh, logging, load, independent review, retention/restore/alerts and
-release enforcement remain unverified.
+Owner Access/JWT, QBO sandbox happy path and natural token refresh are verified;
+genuine webhook, logging, load, review, retention/restore/alerts and release remain unverified.
 No full CDC/backfill, automatic liability reversal or immutable external audit.
 Unknown refresh requires reviewed recovery; Shop Genie integration is specified but unimplemented.

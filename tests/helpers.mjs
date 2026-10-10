@@ -19,6 +19,17 @@ export function database(lastMigration = null) {
       async all() { return { results: stmt.all(...params), success: true }; },
       async run() { const result = stmt.run(...params); return { success: true, meta: { changes: Number(result.changes) } }; }
     };
+  }, async batch(statements) {
+    sqlite.exec('BEGIN');
+    try {
+      const results=[];
+      for (const statement of statements) results.push(await statement.run());
+      sqlite.exec('COMMIT');
+      return results;
+    } catch (error) {
+      sqlite.exec('ROLLBACK');
+      throw error;
+    }
   } };
 }
 

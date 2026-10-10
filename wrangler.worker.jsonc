@@ -23,6 +23,7 @@
     "QB_TIME_ZONE": "America/New_York",
     "ACCESS_TEAM_DOMAIN": "https://fox-referrals-staging.cloudflareaccess.com",
     "ACCESS_AUD": "2a798d83b3680f623089d2e24e509d936d9b1a088349a85caf0db2b1799e076a",
+    "ADMIN_ACCESS_AUD": "211ed7329970251cf8437c388bce797bc38beca48a52df77b9c1e3a14126df57",
     "ACCESS_ADMIN_SUB": "c6827536-6aa4-596b-9f0b-95865a0212b3"
   },
   "d1_databases": [{

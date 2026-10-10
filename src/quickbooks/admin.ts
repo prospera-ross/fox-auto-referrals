@@ -4,8 +4,8 @@ import { HttpError } from '../http.ts';
 import type { QbEnv } from './env.ts';
 
 const resolvers = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
-export async function requireAdmin(request: Request, env: QbEnv, testResolver?: JWTVerifyGetKey): Promise<string> {
-  if (!/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(env.ACCESS_TEAM_DOMAIN ?? '') || !env.ACCESS_AUD || !env.ACCESS_ADMIN_SUB) {
+export async function requireAdmin(request: Request, env: QbEnv, testResolver?: JWTVerifyGetKey, audience = env.ACCESS_AUD): Promise<string> {
+  if (!/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(env.ACCESS_TEAM_DOMAIN ?? '') || !audience || !env.ACCESS_ADMIN_SUB) {
     throw new HttpError(503,'ADMIN_NOT_CONFIGURED','Configure Cloudflare Access for operator routes.');
   }
   const issuer = env.ACCESS_TEAM_DOMAIN!;
@@ -16,7 +16,7 @@ export async function requireAdmin(request: Request, env: QbEnv, testResolver?: 
   }
   try {
     const { payload } = await jwtVerify(request.headers.get('Cf-Access-Jwt-Assertion') ?? '', resolver, {
-      issuer, audience:env.ACCESS_AUD, algorithms:['RS256'], requiredClaims:['sub','exp','iat'], maxTokenAge:'15m', clockTolerance:5
+      issuer, audience, algorithms:['RS256'], requiredClaims:['sub','exp','iat'], maxTokenAge:'15m', clockTolerance:5
     });
     if (payload.sub !== env.ACCESS_ADMIN_SUB) throw new Error('wrong_subject');
     return payload.sub;

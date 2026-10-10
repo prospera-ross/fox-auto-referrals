@@ -24,6 +24,23 @@ therefore does not carry attribution, while refresh in the same tab still works.
 This limits casual link sharing; a photograph or copy of the original printed QR
 still carries the referral identifier.
 
+## Owner dashboard (deployed to staging)
+
+```mermaid
+flowchart LR
+  O[Owner browser] --> A[Cloudflare Access + MFA]
+  A --> F[Pages /api/admin proxy]
+  F --> W[Private Worker + JWT subject check]
+  W --> D[(D1 partners, leads, conversions, audit)]
+  W --> Q[SVG QR generator]
+```
+
+The dashboard uses a distinct Access audience and the same exact owner subject.
+Partner mutations require same-origin requests, bounded allowlisted fields,
+optimistic versions and redacted audit rows. Lead and commission ledgers are
+read-only; no dashboard action can create financial evidence, transfer a reward,
+or write to QuickBooks. QR assets contain only the public claim URL.
+
 ## Sandbox financial integration (deployed and connected)
 
 ```mermaid
@@ -44,8 +61,8 @@ tokens, durable refresh coordination, signed per-event inbox and scheduled reads
 are wired for sandbox only. They fail closed until configured. Recent-invoice
 polling supplements notifications; full CDC/backfill is not implemented. The
 deployed polling path read a real Sandbox customer, invoice, and payment and
-recorded one synthetic reward. Genuine webhook delivery and natural token renewal
-remain unverified. See SANDBOX.md for state/deadline choices and
+recorded one synthetic reward. Natural token renewal passed repeatedly; genuine
+authorized-realm webhook delivery remains unverified. See SANDBOX.md for state/deadline choices and
 QUICKBOOKS_SETUP.md for activation.
 
 Required REST reads: invoice by ID, its customer, linked payment records and
@@ -95,7 +112,7 @@ operator identity to connection lifecycle.
 | Contact spoofing/referral fraud | Normalization is not identity proof; no OTP requested; rate controls and business review still needed |
 | Claim retries/duplicate invoice events | Stable request digest; invoice/lead uniqueness; atomic insertion/completion |
 | Shared email or conflicting phone/email | Reject ambiguous financial matching; no arbitrary first-row match |
-| Forged/mixed-realm/replayed webhook | HMAC parser + per-event validation; live authorized binding/inbox still required |
+| Forged/mixed-realm/replayed webhook | HMAC parser, per-event validation and deployed durable inbox; genuine authorized-realm publication remains unverified |
 | Token theft/account swapping/stale refresh | Encrypted context-bound tokens, exact configured realm, operator/session-bound state and confirmation; uncertain renewal is held |
 | Stale/revoked job authority | Reader rechecks generation and atomic conversion trigger checks current authority/evidence; already-issued reads have a residual cancellation window |
 | Partial persistence/crash | Atomic local constraints; future durable inbox/checkpoint and fault tests required |
@@ -104,7 +121,7 @@ operator identity to connection lifecycle.
 The user owns QBO access and security/release approval; independent review and
 operational responder roles remain unassigned (D01-D08). Phone-only matching can
 misattribute shared/recycled numbers; absence of a conflict is not identity proof.
-No multi-tenant production access, refresh coordinator or admin login is implied.
+No multi-tenant production access, partner login or additional operator is implied.
 
 ## Serverless fit and limits
 
@@ -114,8 +131,8 @@ Proposed financial processing uses bounded scheduled batches with persistent
 retry/checkpoint state, no new paid queue requirement. Numeric CPU, request, D1,
 QBO quotas and cost/load estimates depend on selected plan/region and are open.
 Personal-account staging Pages, Worker and D1 were provisioned with user
-authorization on 2026-10-09; no paid plan or domain was purchased. QuickBooks
-activation and provider-contract validation remain pending.
+authorization; no paid plan or domain was purchased. Sandbox OAuth, renewal and
+reconciliation passed; genuine webhook publication and production contracts remain pending.
 
 ## Visual plan
 

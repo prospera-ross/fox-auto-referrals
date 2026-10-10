@@ -159,8 +159,8 @@ private service binding.
 
 ## 5. Protect operator routes with Cloudflare Access
 
-The customer claim page remains public. Only QuickBooks operator routes require
-authentication.
+The customer claim page remains public. QuickBooks operator routes and the owner
+dashboard require authentication through separate Access applications.
 
 ### 5.1 Enable email one-time codes
 
@@ -192,6 +192,10 @@ create a **Self-hosted and private** Access application for that domain instead.
 Keep `connect`, `callback`, `confirm`, `status`, `pause`, `resume`, and
 `disconnect` protected.
 
+Create a second owner-only application for `fox-referrals.pages.dev/api/admin/*`.
+Use the same owner email and MFA requirement, but retain its distinct audience
+tag so the Worker can bind dashboard requests to the intended application.
+
 ### 5.3 Enroll an MFA method
 
 If Cloudflare displays **No authentication methods set up**, select
@@ -222,10 +226,11 @@ fox-referrals.pages.dev/api/quickbooks/webhook
 Give that application a **Bypass** policy for **Everyone**. Do not use a wildcard
 path. The Worker still requires Intuit's valid HMAC signature.
 
-### 5.5 Copy the three Access values
+### 5.5 Copy the four Access values
 
 - `ACCESS_TEAM_DOMAIN`: `https://YOUR-TEAM.cloudflareaccess.com`;
 - `ACCESS_AUD`: the Audience tag from the operator application;
+- `ADMIN_ACCESS_AUD`: the Audience tag from the dashboard application;
 - `ACCESS_ADMIN_SUB`: the operator's stable `sub`/`user_uuid`, obtained after an
   authenticated request to `/cdn-cgi/access/get-identity`.
 
@@ -235,6 +240,7 @@ Verify the route boundaries:
 
 - `/claim?ref=staging-restaurant` opens without Access login;
 - `/api/quickbooks/status` requires email OTP and MFA;
+- `/api/admin/dashboard` requires email OTP and MFA;
 - `GET /api/quickbooks/webhook` returns `405`;
 - an unsigned `POST /api/quickbooks/webhook` returns `400 INVALID_WEBHOOK`, not an
   Access login page.
@@ -441,8 +447,9 @@ technical recovery runbook.
 - [ ] The result is recorded in `docs/STATUS.md` without secrets.
 
 The current staging environment completed the end-to-end flow through scheduled
-reconciliation. Real webhook delivery and natural token renewal still need direct
-evidence before any production assessment. Read [STATUS.md](STATUS.md) for current
+reconciliation, and natural token renewal passed repeatedly. Real authorized-realm
+webhook delivery still needs direct evidence before any production assessment.
+Read [STATUS.md](STATUS.md) for current
 evidence and [OPERATIONS.md](OPERATIONS.md) for production blockers.
 
 ## 12. Official references
