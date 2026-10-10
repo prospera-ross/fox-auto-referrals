@@ -37,5 +37,8 @@ from proposed business policies. `INIT.md` remains the initialization procedure.
   Keep production blocked. Sandbox implementation/tests do not close production
   decision gates or establish provider-contract/independent review evidence.
 - Use README commands and focused tests. Record unexecuted cloud/provider checks.
+- Proactively suggest commits at meaningful, validated milestones under
+  [the commit checkpoint policy](docs/WORKFLOW.md#proactively-suggest-commit-checkpoints).
+  Include scope, proposed message and validation; suggestions do not block work.
 - No deployment, paid resources, Git initialization, staging, commits, or pushes
-  without authorization. No Git repository existed at initial inspection.
+  without authorization. Check current Git status before editing or proposing commits.

@@ -331,6 +331,9 @@ services, accurate directory map, conventions affecting implementation, specific
 security rules, specialized documents, and source priority. Avoid session journals,
 old bugs, and generic instructions the tool already understands.
 
+Include a short rule to proactively suggest commits at meaningful, validated
+milestones, with a link to the commit checkpoint policy in `docs/WORKFLOW.md`.
+
 ### `README.md`
 
 Document the product, prerequisites, installation, execution, tests, and build with
@@ -355,6 +358,8 @@ the code, Git, and the relevant environment.
 Adapt the workflow to the project and always include the intents below. Also record
 validation selection, Git policy, and delivery procedures only when they are known.
 Link to the canonical command reference instead of duplicating command lists.
+Include the proactive commit checkpoint policy below so it remains available in
+future sessions without rereading INIT.
 
 ### Additional documentation for comprehensive projects
 
@@ -418,13 +423,50 @@ The agent must:
 5. record durable decisions and lessons only when useful, in the appropriate
    existing document or an ADR; do not create a memory file for routine activity;
 6. summarize changed files, validation, risks, and pending work;
-7. suggest coherent commits without mutating Git unless explicitly requested.
+7. evaluate the commit checkpoint policy below and suggest any ready commits.
 
 ### Execute a concrete task
 
 When the user already says what must be done, that task takes priority over the
 planning ritual. Inspect related context, implement, validate, and deliver. Do not
 offer options for a choice the user has already made.
+
+### Proactively suggest commit checkpoints
+
+Evaluate commit readiness after completing a coherent unit of work, before moving
+to a different objective or a broad/risky refactor, and when preparing a handoff.
+Do this without waiting for the user to ask or the session to end. Use meaningful
+boundaries, not elapsed time, file counts, or a suggestion after every small edit.
+
+A good checkpoint is a self-contained feature slice, bug fix, refactor, or
+documentation/configuration update that can be reviewed and reverted as one unit.
+Before recommending it:
+
+1. inspect Git status, relevant staged and unstaged diffs, and intended untracked
+   files; identify the exact files or hunks belonging to the proposed commit;
+2. confirm that this unit is complete, includes its necessary tests/documentation,
+   and has passed the applicable checks; for documentation-only changes, review
+   consistency, links, and formatting instead of running application tests;
+3. exclude unrelated or pre-existing work outside the authorized scope, secrets,
+   and temporary artifacts; if several independent units are ready, suggest
+   separate commits and their order without changing the index.
+
+Give one concise recommendation with why this is a useful checkpoint, its scope,
+a proposed commit message following repository conventions, and validation results
+or limits. For example: "This fix is complete and its regression test passes.
+Suggested commit: `<message>`. Scope: `<files or hunks>`."
+
+If required checks failed or are unavailable, or the unit is incomplete, state
+what remains before it is ready instead of presenting it as validated. A clean
+working tree needs no suggestion. If Git is unavailable, report that limit without
+initializing a repository. Commit readiness does not imply release readiness.
+
+Suggest once per meaningful checkpoint; if the user defers or ignores it, continue
+authorized work without repeating the same suggestion until scope or readiness
+materially changes. The recommendation is not a blocking approval step. Run
+`git add`, `git commit`, or `git push` only when authorized by the user, honoring
+authorization already given and its scope; commit permission alone is not push
+permission.
 
 ## Optional documentation
 
