@@ -47,7 +47,7 @@ No production, paid plan/domain purchase, Git initialization or commits authoriz
 - Local migrations/seed reapplied after changing configured D1 identifier.
 
 ## Local state
-- GitHub publication authorized; initial private repository is being prepared.
+- Private GitHub repository published: andersonguilher/fox-auto-referrals.
 - Ignored .dev.vars contains local encryption key and owner-provided sandbox
   client credentials. Never print this file or its secrets.
 - Ignored .cloudflare-access.local prepared for temporary Access setup token.

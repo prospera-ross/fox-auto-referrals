@@ -173,3 +173,4 @@ delivery, natural token renewal, and production ingress contracts remain open.
 - [Session workflow](docs/WORKFLOW.md)
 - [Provider sources](docs/SOURCES.md)
 - [Shop Genie integration backlog](docs/SHOPGENIE_INTEGRATION.md)
+- [Shop Genie tracking issue](https://github.com/andersonguilher/fox-auto-referrals/issues/1)
