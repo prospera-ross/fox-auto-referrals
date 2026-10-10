@@ -1,9 +1,8 @@
 ﻿# Current handoff — 2026-10-10
 
 ## Objective and authorization
-Build the owner Admin Dashboard while completing QuickBooks Sandbox validation.
-User explicitly authorized account setup/deployment; Wrangler login completed.
-No production, paid plan/domain purchase, Git initialization or commits authorized.
+Validate the deployed owner dashboard and QuickBooks Sandbox integration.
+Public manual commit authorized; no production, paid resources or push authorized.
 
 ## Implemented
 - Responsive English QR claim page, supplied Fox logo, Pages service proxy.
@@ -16,7 +15,7 @@ No production, paid plan/domain purchase, Git initialization or commits authoriz
   encrypted D1 tokens, confirmation, coordinated refresh and uncertainty holds.
 - Signed webhook inbox, durable jobs/retries/quarantine, minute cron and bounded
   invoice polling. Accounting reads only; no transfers or QBO accounting edits.
-- English web manual added; mobile claim uses name/phone and integrated transparent logo.
+- Public manual covers owner dashboard/QR operations, separate Access and current gaps.
 
 ## Cloud staging executed
 - Account: 75d4cc849d22526730a76a2f200446d7 (user's personal account).
@@ -40,6 +39,7 @@ No production, paid plan/domain purchase, Git initialization or commits authoriz
   D1 lead (+12025550169, deployment-smoke@example.test); zero conversions.
 
 ## Validation
+- Manual Chrome: anchors/copy targets, search, 14 checks, mobile menu and 1440/390/320px layouts pass; screenshots reviewed. Manual not deployed.
 - Windows Node 24.18.0/npm 11.16.0; TypeScript, bundle/deployment succeeded.
 - Latest local suite: 43 Node/SQLite tests, TypeScript and Worker bundle pass.
   Admin Chrome UI test and prior three claim/OAuth Chrome tests pass.

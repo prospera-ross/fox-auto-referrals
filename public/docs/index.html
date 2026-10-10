@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Step-by-step staging setup guide for Fox Referrals, Cloudflare, and QuickBooks Sandbox.">
+  <meta name="description" content="Fox Referrals staging setup and owner dashboard guide: Cloudflare Access, referral QR codes, and QuickBooks Sandbox validation.">
   <meta name="referrer" content="no-referrer">
   <title>Staging setup manual | Fox Referrals</title>
   <link rel="stylesheet" href="docs.css">
@@ -43,9 +43,10 @@
         <a href="#intuit" data-nav="intuit"><span>06</span>Intuit app</a>
         <a href="#secrets" data-nav="secrets"><span>07</span>Worker secrets</a>
         <a href="#connect" data-nav="connect"><span>08</span>Connect Sandbox</a>
-        <a href="#test" data-nav="test"><span>09</span>End-to-end test</a>
-        <a href="#troubleshooting" data-nav="troubleshooting"><span>10</span>Troubleshooting</a>
-        <a href="#finish" data-nav="finish"><span>11</span>Final checklist</a>
+        <a href="#dashboard" data-nav="dashboard"><span>09</span>Owner dashboard</a>
+        <a href="#test" data-nav="test"><span>10</span>End-to-end test</a>
+        <a href="#troubleshooting" data-nav="troubleshooting"><span>11</span>Troubleshooting</a>
+        <a href="#finish" data-nav="finish"><span>12</span>Final checklist</a>
       </nav>
       <div class="sidebar-note">
         <span class="status-dot"></span>
@@ -74,7 +75,7 @@
         </div>
         <div class="hero-facts">
           <div><span>Environment</span><strong>Staging</strong></div>
-          <div><span>Expected time</span><strong>45–75 min</strong></div>
+          <div><span>Guide updated</span><strong>2026-10-10</strong></div>
           <div><span>Test reward</span><strong>$10.00</strong></div>
           <div><span>Production</span><strong>Blocked</strong></div>
         </div>
@@ -82,12 +83,17 @@
 
       <div class="path-callout">
         <strong>Choose your starting point.</strong>
-        <p><b>Existing staging:</b> read <code>docs/STATUS.md</code> and skip completed sections. <b>New staging:</b> begin with prerequisites and follow every section in order.</p>
+        <p><b>Existing staging:</b> read <code>docs/STATUS.md</code> in the repository and skip completed setup. Use the <a href="#dashboard">owner dashboard</a> for daily work. <b>New staging:</b> begin with prerequisites and follow every section in order.</p>
       </div>
 
       <div class="path-callout">
         <strong>Current customer experience.</strong>
         <p>The mobile offer integrates the supplied transparent Fox logo into the card, asks only for name and phone, and removes the referral query from the address bar after a valid QR opens. Refreshing the same tab keeps the referral; sharing the cleaned URL does not carry attribution.</p>
+      </div>
+
+      <div class="path-callout">
+        <strong>Recorded staging validation.</strong>
+        <p>Prior checks recorded successful Sandbox OAuth, natural token renewal, one synthetic paid-invoice reward without duplicates, and authenticated dashboard reads, filters, and QR downloads. The dashboard is deployed; authenticated live visual inspection and genuine Intuit webhook delivery remain pending. This guide update did not rerun cloud or provider checks.</p>
       </div>
 
       <div class="path-callout">
@@ -109,7 +115,8 @@
               <tr><td>Client ID</td><td>Keys &amp; Credentials</td><td>OAuth client identity</td></tr>
               <tr><td>Client Secret</td><td>Keys &amp; Credentials</td><td>OAuth client authentication</td></tr>
               <tr><td>Webhook verifier</td><td>Webhooks</td><td>Notification signature checks</td></tr>
-              <tr><td>Access AUD</td><td>Access application</td><td>Protected app identity</td></tr>
+              <tr><td>QuickBooks Access AUD</td><td>QuickBooks operator Access application</td><td><code>ACCESS_AUD</code></td></tr>
+              <tr><td>Dashboard Access AUD</td><td>Separate owner dashboard Access application</td><td><code>ADMIN_ACCESS_AUD</code></td></tr>
               <tr><td>Access subject</td><td>Authenticated identity</td><td>Allowed operator identity</td></tr>
             </tbody>
           </table>
@@ -174,23 +181,25 @@ npx.cmd wrangler pages deploy public --project-name fox-referrals --branch main<
       </section>
 
       <section class="doc-section" id="access" data-title="Access and MFA">
-        <div class="section-heading"><span>05</span><div><p>Operator boundary</p><h2>Protect QuickBooks controls</h2></div></div>
+        <div class="section-heading"><span>05</span><div><p>Operator boundary</p><h2>Protect QuickBooks and the dashboard</h2></div></div>
         <ol class="steps">
           <li><span>Enable email login</span><p>In Cloudflare Zero Trust, open <b>Settings → Authentication → Login methods</b> and enable <b>One-time PIN</b>.</p></li>
           <li><span>Create the Pages Access policy</span><p>Open <b>Workers &amp; Pages → fox-referrals → Settings</b>, select <b>Enable access policy</b>, and manage the generated application.</p></li>
           <li><span>Narrow the protected path</span><p>In <b>Zero Trust → Access controls → Applications</b>, change <code>*.fox-referrals.pages.dev</code> to <code>fox-referrals.pages.dev</code> and set the path to <code>/api/quickbooks/*</code>.</p></li>
           <li><span>Allow one operator</span><p>Use a 15-minute session, an Allow policy for the operator email, and independent MFA.</p></li>
+          <li><span>Protect the owner dashboard separately</span><p>Create a second owner-only application for <code>fox-referrals.pages.dev/api/admin/*</code>. Use the same owner email, MFA requirement, and 15-minute session, with its own audience tag. Store that tag as <code>ADMIN_ACCESS_AUD</code>.</p></li>
           <li><span>Enroll MFA</span><p>Open the App Launcher, then <b>Account → MFA devices → Add an MFA device</b>. Choose <b>Authenticator application</b>.</p></li>
         </ol>
         <div class="code-block compact"><div><span>Direct MFA enrollment</span><button type="button" data-copy="code-mfa">Copy</button></div><pre id="code-mfa"><code>https://YOUR-TEAM.cloudflareaccess.com/AddMfaDevice</code></pre></div>
         <div class="warning neutral"><span>Webhook exception</span><strong>Create one exact Access bypass.</strong><p>Use <code>fox-referrals.pages.dev/api/quickbooks/webhook</code> with a Bypass policy for Everyone. Do not use a wildcard. The Worker still rejects requests without Intuit's HMAC.</p></div>
         <h3>Add the Access values to Worker configuration</h3>
-        <div class="field-map three">
+        <div class="field-map">
           <div><span>ACCESS_TEAM_DOMAIN</span><code>https://YOUR-TEAM.cloudflareaccess.com</code></div>
           <div><span>ACCESS_AUD</span><code>Operator app Audience tag</code></div>
+          <div><span>ADMIN_ACCESS_AUD</span><code>Dashboard app Audience tag</code></div>
           <div><span>ACCESS_ADMIN_SUB</span><code>Operator sub / user_uuid</code></div>
         </div>
-        <p class="checkpoint"><span>Checkpoint</span>The claim page is public. The status page requires OTP and MFA. Webhook GET returns 405; an unsigned webhook POST returns 400.</p>
+        <p class="checkpoint"><span>Checkpoint</span>The claim page is public. Both <code>/api/quickbooks/status</code> and <code>/api/admin/dashboard</code> require OTP and MFA. Once QuickBooks is enabled, webhook GET returns 405 and an unsigned webhook POST returns 400.</p>
       </section>
 
       <section class="doc-section" id="intuit" data-title="Intuit app">
@@ -229,7 +238,7 @@ npx.cmd wrangler pages deploy public --project-name fox-referrals --branch main<
 npx.cmd wrangler secret put QB_CLIENT_SECRET --config wrangler.worker.jsonc
 npx.cmd wrangler secret put QB_WEBHOOK_VERIFIER --config wrangler.worker.jsonc
 node scripts/set-token-key.mjs</code></pre></div>
-        <p>The last command creates and uploads <code>QB_TOKEN_KEY</code> without printing it. Change <code>QB_ENABLED</code> to <code>true</code>, then deploy.</p>
+        <p>The last command creates and uploads <code>QB_TOKEN_KEY</code> without printing it. Run it only for initial setup when no token key exists; an existing connection requires its original key. Change <code>QB_ENABLED</code> to <code>true</code>, then deploy.</p>
         <div class="code-block compact"><div><span>Enable the integration</span><button type="button" data-copy="code-enable">Copy</button></div><pre id="code-enable"><code>npx.cmd wrangler deploy --config wrangler.worker.jsonc</code></pre></div>
         <p class="checkpoint"><span>Checkpoint</span>All four secrets exist in the Worker. Their values do not appear in source, configuration, terminal history, or screenshots.</p>
       </section>
@@ -247,8 +256,23 @@ node scripts/set-token-key.mjs</code></pre></div>
         <div class="code-block"><div><span>Safe connection check</span><button type="button" data-copy="code-connection">Copy</button></div><pre id="code-connection"><code>npx.cmd wrangler d1 execute fox-referrals --remote --config wrangler.worker.jsonc --command "SELECT state,realm_id,paused,token_version,(token_envelope IS NOT NULL) AS has_encrypted_tokens FROM qb_connection WHERE id=1"</code></pre></div>
       </section>
 
+      <section class="doc-section" id="dashboard" data-title="Owner dashboard partners leads commissions QR codes">
+        <div class="section-heading"><span>09</span><div><p>Daily operations</p><h2>Use the owner dashboard</h2></div></div>
+        <div class="browser-address"><span>Protected URL</span><a href="/api/admin/dashboard">Open owner dashboard</a></div>
+        <p>Sign in as the allowed owner with OTP and MFA at <code>/api/admin/dashboard</code>. The dashboard shows referral partners, leads, and recorded commissions for the one Fox shop. Partners do not have their own login.</p>
+        <ol class="steps">
+          <li><span>Register a partner</span><p>In <b>Partners</b>, select <b>Register partner</b>. Enter the business name, phone, unique referral code, and fixed reward in dollars and cents. Use synthetic businesses while validating staging. The reward is snapshotted when a customer claims.</p></li>
+          <li><span>Prepare the referral QR</span><p>On the partner row, select <b>QR card</b> to view and download the SVG, or <b>Copy link</b> to copy the claim URL. The QR contains the claim URL and referral code; it does not contain customer details or reward amounts. Share the original partner link, since the customer page cleans its address bar after opening.</p></li>
+          <li><span>Control new claims</span><p>Use <b>Deactivate</b> to stop new claims for a partner or <b>Activate</b> to accept them again. Existing leads and commissions remain in the ledgers.</p></li>
+          <li><span>Review the ledgers</span><p>Open <b>Leads</b> or <b>Commissions</b>, choose a partner, status, or date range, and select <b>Apply filters</b>. Lead dates filter when claims were created; commission dates filter when rewards were recorded. Commissions also show the payment date, paid invoice amount, and reward.</p></li>
+        </ol>
+        <div class="warning neutral"><span>Recording only</span><strong>PENDING means recorded and unpaid.</strong><p>The dashboard does not transfer money or provide an action to mark a commission paid. Any fully paid invoice can qualify within the first claim's 30 shop-local calendar dates, with the claim date counted as day 1. Later claims do not reset eligibility; each customer can earn only one reward.</p></div>
+        <p class="checkpoint"><span>Checkpoint</span>Verify the owner can read the ledgers and download a QR that opens the intended partner claim URL. Check desktop and mobile layouts. Signed-out requests to the dashboard must require Access; the customer claim page stays public.</p>
+      </section>
+
       <section class="doc-section" id="test" data-title="End-to-end test">
-        <div class="section-heading"><span>09</span><div><p>Prove the full path</p><h2>Run one synthetic paid-invoice test</h2></div></div>
+        <div class="section-heading"><span>10</span><div><p>Prove the full path</p><h2>Run one synthetic paid-invoice test</h2></div></div>
+        <p>The example below uses the staging fixture's fixed $10 reward. If this customer already earned a commission, repeating the test must not create another. For a new conversion test, use a fresh synthetic customer and matching contact details in the claim and Sandbox invoice.</p>
         <h3>Create the staging fixture</h3>
         <div class="code-block compact"><div><span>Remote staging seed</span><button type="button" data-copy="code-seed">Copy</button></div><pre id="code-seed"><code>npx.cmd wrangler d1 execute fox-referrals --remote --config wrangler.worker.jsonc --file seeds/staging.sql</code></pre></div>
         <div class="test-lanes">
@@ -268,12 +292,13 @@ node scripts/set-token-key.mjs</code></pre></div>
       </section>
 
       <section class="doc-section" id="troubleshooting" data-title="Troubleshooting">
-        <div class="section-heading"><span>10</span><div><p>When a screen does not match</p><h2>Troubleshooting index</h2></div></div>
+        <div class="section-heading"><span>11</span><div><p>When a screen does not match</p><h2>Troubleshooting index</h2></div></div>
         <div class="trouble-list">
           <details><summary><span>No authentication methods set up</span><b>Cloudflare Access</b></summary><p>Select <b>Setup MFA</b> or open the direct <code>/AddMfaDevice</code> URL and enroll an authenticator application.</p></details>
           <details><summary><span>Welcome! No applications are available</span><b>Cloudflare Access</b></summary><p>Enable the Access App Launcher for the operator email, enroll MFA, then return to the protected operator URL.</p></details>
           <details><summary><span>INVALID_ORIGIN</span><b>Operator page</b></summary><p>Reopen <code>/api/quickbooks/connect</code> and use the button on the fresh page. Do not open the form action directly or resubmit a stale page.</p></details>
           <details><summary><span>QUICKBOOKS_NOT_CONFIGURED</span><b>Worker</b></summary><p>Check every required non-secret variable and all four Worker secrets. Do not print their values.</p></details>
+          <details><summary><span>Dashboard access fails</span><b>Owner dashboard</b></summary><p>Open <code>/api/admin/dashboard</code> and sign in again. Confirm the owner-only Access application covers <code>/api/admin/*</code> and its distinct audience matches <code>ADMIN_ACCESS_AUD</code>. Keep <code>ACCESS_AUD</code> assigned to the separate QuickBooks application.</p></details>
           <details><summary><span>Wrong company or ID</span><b>Intuit</b></summary><p>The App ID was probably copied into <code>QB_REALM_ID</code>. Use the ID shown under <b>Sandbox companies</b>.</p></details>
           <details><summary><span>refresh_unknown (paused)</span><b>OAuth safety hold</b></summary><p>Disconnect the app from the Sandbox company and follow the technical recovery procedure. Never edit stored tokens or expiry values.</p></details>
           <details><summary><span>The claim rejects my phone</span><b>Claim page</b></summary><p>The current product accepts US/NANP numbers only. Use the documented synthetic US number for testing.</p></details>
@@ -283,22 +308,25 @@ node scripts/set-token-key.mjs</code></pre></div>
       </section>
 
       <section class="doc-section finish" id="finish" data-title="Final checklist">
-        <div class="section-heading"><span>11</span><div><p>Close the service bay</p><h2>Final setup checklist</h2></div></div>
-        <div class="final-progress"><div><span id="completed-count">0</span>/11 complete</div><progress id="setup-progress" max="11" value="0">0%</progress></div>
+        <div class="section-heading"><span>12</span><div><p>Close the service bay</p><h2>Final setup checklist</h2></div></div>
+        <div class="final-progress"><div><span id="completed-count">0</span>/14 complete</div><progress id="setup-progress" max="14" value="0">0%</progress></div>
         <div class="final-checklist" id="final-checklist">
           <label><input type="checkbox"> <span><code>npm.cmd run check</code> passes.</span></label>
           <label><input type="checkbox"> <span>Remote migrations have no pending items.</span></label>
           <label><input type="checkbox"> <span>The claim page opens without Access.</span></label>
           <label><input type="checkbox"> <span>Operator pages require email OTP and MFA.</span></label>
+          <label><input type="checkbox"> <span>Owner dashboard reads, desktop/mobile layouts, and partner QR downloads pass.</span></label>
           <label><input type="checkbox"> <span>Only the exact webhook path bypasses login.</span></label>
           <label><input type="checkbox"> <span>The Company ID is stored in <code>QB_REALM_ID</code>.</span></label>
           <label><input type="checkbox"> <span>All four Worker secrets are stored.</span></label>
           <label><input type="checkbox"> <span>OAuth reports <code>active</code> and <code>paused=0</code>.</span></label>
+          <label><input type="checkbox"> <span>Natural token renewal is verified without editing tokens or expiry values.</span></label>
           <label><input type="checkbox"> <span>The synthetic lead is <code>COMPLETED</code>.</span></label>
           <label><input type="checkbox"> <span>Exactly one 1000-cent commission exists.</span></label>
+          <label><input type="checkbox"> <span>Genuine authorized-realm Intuit webhook delivery is verified separately from scheduled scans.</span></label>
           <label><input type="checkbox"> <span>The result is recorded in <code>docs/STATUS.md</code> without secrets.</span></label>
         </div>
-        <div class="finish-note"><strong>Staging evidence is not production approval.</strong><p>Real webhook delivery, natural token renewal, independent review, monitoring, retention, restore testing, and production gates remain open.</p></div>
+        <div class="finish-note"><strong>Staging evidence is not production approval.</strong><p>Natural token renewal has prior Sandbox evidence. Genuine Intuit webhook delivery and authenticated live dashboard visual inspection remain pending, along with independent review, monitoring, retention, restore testing, and production gates. Checkboxes are a working checklist, not saved verification evidence.</p></div>
       </section>
 
       <div class="no-results" id="no-results" hidden><strong>No matching section</strong><p>Try a shorter term such as “MFA”, “webhook”, “realm”, or “invoice”.</p></div>
