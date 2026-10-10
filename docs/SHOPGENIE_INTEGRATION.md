@@ -1,6 +1,6 @@
 # Shop Genie integration backlog
 
-**Status:** planned in [GitHub Issue #1](https://github.com/andersonguilher/fox-auto-referrals/issues/1), not implemented. The current customer flow saves the Fox
+**Status:** planned in [GitHub Issue #1](https://github.com/prospera-ross/fox-auto-referrals/issues/1), not implemented. The current customer flow saves the Fox
 referral lead and then opens a fixed public Shop Genie booking URL. It does not
 create, read, update, or confirm an appointment, and it sends no customer details
 to Shop Genie.
