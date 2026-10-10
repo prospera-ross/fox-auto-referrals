@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Step-by-step staging setup guide for Fox Referrals, Cloudflare, and QuickBooks Sandbox.">
+  <meta name="referrer" content="no-referrer">
+  <title>Staging setup manual | Fox Referrals</title>
+  <link rel="stylesheet" href="docs.css">
+  <script src="docs.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to documentation</a>
+  <header class="topbar">
+    <a class="brand" href="/claim" aria-label="Fox Auto Services claim page">
+      <img src="../fox-logo.png" alt="" width="52" height="52">
+      <span><strong>Fox Referrals</strong><small>Operator documentation</small></span>
+    </a>
+    <div class="top-actions">
+      <label class="search">
+        <span class="search-icon" aria-hidden="true"></span>
+        <span class="sr-only">Search this guide</span>
+        <input id="doc-search" type="search" placeholder="Search setup guide" autocomplete="off">
+        <kbd>Ctrl K</kbd>
+      </label>
+      <button class="print-button" id="print-guide" type="button">Print guide</button>
+      <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="doc-nav">
+        <span></span><span></span><span></span><span class="sr-only">Open guide navigation</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <aside class="sidebar" id="doc-nav" aria-label="Setup guide sections">
+      <div class="manual-label"><span>STAGING MANUAL</span><strong>SETUP / 01</strong></div>
+      <nav>
+        <a href="#overview" data-nav="overview"><span>00</span>Overview</a>
+        <a href="#identifiers" data-nav="identifiers"><span>01</span>Know the IDs</a>
+        <a href="#safety" data-nav="safety"><span>02</span>Protect credentials</a>
+        <a href="#prerequisites" data-nav="prerequisites"><span>03</span>Prerequisites</a>
+        <a href="#cloudflare" data-nav="cloudflare"><span>04</span>Cloudflare</a>
+        <a href="#access" data-nav="access"><span>05</span>Access and MFA</a>
+        <a href="#intuit" data-nav="intuit"><span>06</span>Intuit app</a>
+        <a href="#secrets" data-nav="secrets"><span>07</span>Worker secrets</a>
+        <a href="#connect" data-nav="connect"><span>08</span>Connect Sandbox</a>
+        <a href="#test" data-nav="test"><span>09</span>End-to-end test</a>
+        <a href="#troubleshooting" data-nav="troubleshooting"><span>10</span>Troubleshooting</a>
+        <a href="#finish" data-nav="finish"><span>11</span>Final checklist</a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        <p><strong>Sandbox only</strong>Never connect a live QuickBooks company with this guide.</p>
+      </div>
+    </aside>
+
+    <main id="content">
+      <section class="hero doc-section" id="overview" data-title="Overview">
+        <div class="hero-copy">
+          <p class="kicker">Cloudflare + QuickBooks Sandbox</p>
+          <h1>From empty accounts to a verified test reward.</h1>
+          <p class="hero-intro">A field manual for setting up Fox Referrals safely, one checkpoint at a time. Written for a first-time operator.</p>
+          <div class="hero-actions">
+            <a class="primary-action" href="#prerequisites">Start setup</a>
+            <a class="secondary-action" href="#troubleshooting">Open troubleshooting</a>
+          </div>
+        </div>
+        <div class="system-map" aria-label="System connection map">
+          <div class="map-node customer"><span>01</span><strong>Claim page</strong><small>Public</small></div>
+          <div class="map-path path-a" aria-hidden="true"></div>
+          <div class="map-node worker"><span>02</span><strong>Private Worker</strong><small>Cloudflare</small></div>
+          <div class="map-path path-b" aria-hidden="true"></div>
+          <div class="map-node qbo"><span>03</span><strong>QBO Sandbox</strong><small>Read only</small></div>
+          <div class="map-node database"><span>DB</span><strong>Encrypted D1</strong><small>Evidence</small></div>
+        </div>
+        <div class="hero-facts">
+          <div><span>Environment</span><strong>Staging</strong></div>
+          <div><span>Expected time</span><strong>45–75 min</strong></div>
+          <div><span>Test reward</span><strong>$10.00</strong></div>
+          <div><span>Production</span><strong>Blocked</strong></div>
+        </div>
+      </section>
+
+      <div class="path-callout">
+        <strong>Choose your starting point.</strong>
+        <p><b>Existing staging:</b> read <code>docs/STATUS.md</code> and skip completed sections. <b>New staging:</b> begin with prerequisites and follow every section in order.</p>
+      </div>
+
+      <div class="path-callout">
+        <strong>Current customer experience.</strong>
+        <p>The mobile offer integrates the supplied transparent Fox logo into the card, asks only for name and phone, and removes the referral query from the address bar after a valid QR opens. Refreshing the same tab keeps the referral; sharing the cleaned URL does not carry attribution.</p>
+      </div>
+
+      <div class="path-callout">
+        <strong>Planned: supported Shop Genie integration.</strong>
+        <p>The current release saves the lead and opens a fixed booking URL; it does not create or confirm an appointment. The repository backlog defines provider discovery, server-side authentication, signed events or reconciliation, privacy controls, failure recovery, and sandbox acceptance tests before any live integration.</p>
+      </div>
+
+      <section class="doc-section" id="identifiers" data-title="Know the IDs">
+        <div class="section-heading"><span>01</span><div><p>Before you copy anything</p><h2>Know which ID belongs where</h2></div></div>
+        <p>Cloudflare and Intuit show several long identifiers. They are not interchangeable. Most setup mistakes begin here.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Where to find it</th><th>Used for</th></tr></thead>
+            <tbody>
+              <tr><td>Cloudflare Account ID</td><td>Account overview</td><td>The Cloudflare account</td></tr>
+              <tr><td>D1 Database ID</td><td>D1 creation output</td><td><code>database_id</code></td></tr>
+              <tr><td>Intuit App ID</td><td>App overview</td><td>Portal identity only</td></tr>
+              <tr class="important-row"><td>Company ID / Realm ID</td><td>Sandbox companies</td><td><code>QB_REALM_ID</code></td></tr>
+              <tr><td>Client ID</td><td>Keys &amp; Credentials</td><td>OAuth client identity</td></tr>
+              <tr><td>Client Secret</td><td>Keys &amp; Credentials</td><td>OAuth client authentication</td></tr>
+              <tr><td>Webhook verifier</td><td>Webhooks</td><td>Notification signature checks</td></tr>
+              <tr><td>Access AUD</td><td>Access application</td><td>Protected app identity</td></tr>
+              <tr><td>Access subject</td><td>Authenticated identity</td><td>Allowed operator identity</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="warning"><span>Do not mix these up</span><strong>The Intuit App ID is not the QuickBooks Company ID.</strong><p>Open <b>My Hub → Sandbox companies</b>. Copy the number shown below the company name.</p></div>
+      </section>
+
+      <section class="doc-section" id="safety" data-title="Protect credentials">
+        <div class="section-heading"><span>02</span><div><p>Security rule</p><h2>Keep every secret out of view</h2></div></div>
+        <div class="rule-grid">
+          <article><span>Never share</span><p>Client Secret, tokens, OAuth codes, cookies, MFA QR codes, and one-time codes.</p></article>
+          <article><span>Paste only here</span><p>Wrangler's hidden prompt or a Cloudflare field explicitly marked <b>Secret</b>.</p></article>
+          <article><span>Keep the token key</span><p>Do not replace <code>QB_TOKEN_KEY</code> after connecting. Existing ciphertext requires it.</p></article>
+          <article><span>If exposed</span><p>Revoke the credential at its provider and create a replacement immediately.</p></article>
+        </div>
+      </section>
+
+      <section class="doc-section" id="prerequisites" data-title="Prerequisites">
+        <div class="section-heading"><span>03</span><div><p>Prepare the workstation</p><h2>Confirm the tools and accounts</h2></div></div>
+        <div class="check-grid">
+          <label><input type="checkbox"> Windows PowerShell</label>
+          <label><input type="checkbox"> Node.js 24.x</label>
+          <label><input type="checkbox"> npm 11.x</label>
+          <label><input type="checkbox"> Cloudflare account</label>
+          <label><input type="checkbox"> Intuit Developer account</label>
+          <label><input type="checkbox"> Authenticator app</label>
+        </div>
+        <div class="code-block"><div><span>PowerShell · project root</span><button type="button" data-copy="code-prereq">Copy</button></div><pre id="code-prereq"><code>node --version
+npm.cmd --version
+npm.cmd ci --ignore-scripts
+npm.cmd run check</code></pre></div>
+        <p class="checkpoint"><span>Checkpoint</span>The project check finishes without an error. If Windows blocks <code>npm.ps1</code>, keep using <code>npm.cmd</code> and <code>npx.cmd</code>.</p>
+      </section>
+
+      <section class="doc-section" id="cloudflare" data-title="Cloudflare setup">
+        <div class="section-heading"><span>04</span><div><p>Infrastructure</p><h2>Prepare Cloudflare staging</h2></div></div>
+        <h3>Sign in and inspect existing resources</h3>
+        <div class="code-block"><div><span>PowerShell</span><button type="button" data-copy="code-cf-login">Copy</button></div><pre id="code-cf-login"><code>npx.cmd wrangler login
+npx.cmd wrangler whoami
+npx.cmd wrangler d1 list
+npx.cmd wrangler pages project list</code></pre></div>
+        <p>Check the account name and Account ID. Reuse <code>fox-referrals</code> and <code>fox-referrals-api</code> when they already exist.</p>
+        <h3>Create only what is missing</h3>
+        <div class="code-block"><div><span>Run only for absent resources</span><button type="button" data-copy="code-cf-create">Copy</button></div><pre id="code-cf-create"><code>npx.cmd wrangler d1 create fox-referrals --config wrangler.worker.jsonc
+npx.cmd wrangler pages project create fox-referrals --production-branch main</code></pre></div>
+        <p>Copy the returned D1 UUID into <code>database_id</code> in <code>wrangler.worker.jsonc</code>. Keep <code>QB_ENABLED</code> set to <code>false</code> for now.</p>
+        <div class="field-map">
+          <div><span>APP_ENV</span><code>staging</code></div>
+          <div><span>PUBLIC_ORIGIN</span><code>https://fox-referrals.pages.dev</code></div>
+          <div><span>QB_REDIRECT_URI</span><code>https://fox-referrals.pages.dev/api/quickbooks/callback</code></div>
+          <div><span>QB_REALM_ID</span><code>Sandbox Company ID</code></div>
+          <div><span>QB_MINOR_VERSION</span><code>75</code></div>
+          <div><span>QB_TIME_ZONE</span><code>America/New_York</code></div>
+        </div>
+        <h3>Apply migrations and deploy</h3>
+        <div class="code-block"><div><span>Remote staging</span><button type="button" data-copy="code-cf-deploy">Copy</button></div><pre id="code-cf-deploy"><code>npx.cmd wrangler d1 migrations list fox-referrals --remote --config wrangler.worker.jsonc
+npx.cmd wrangler d1 migrations apply fox-referrals --remote --config wrangler.worker.jsonc
+npx.cmd wrangler d1 migrations list fox-referrals --remote --config wrangler.worker.jsonc
+npx.cmd wrangler deploy --config wrangler.worker.jsonc
+npx.cmd wrangler pages deploy public --project-name fox-referrals --branch main</code></pre></div>
+        <p class="checkpoint"><span>Checkpoint</span>The second migration list has no pending items. Pages is public; the API Worker remains private behind its service binding.</p>
+      </section>
+
+      <section class="doc-section" id="access" data-title="Access and MFA">
+        <div class="section-heading"><span>05</span><div><p>Operator boundary</p><h2>Protect QuickBooks controls</h2></div></div>
+        <ol class="steps">
+          <li><span>Enable email login</span><p>In Cloudflare Zero Trust, open <b>Settings → Authentication → Login methods</b> and enable <b>One-time PIN</b>.</p></li>
+          <li><span>Create the Pages Access policy</span><p>Open <b>Workers &amp; Pages → fox-referrals → Settings</b>, select <b>Enable access policy</b>, and manage the generated application.</p></li>
+          <li><span>Narrow the protected path</span><p>In <b>Zero Trust → Access controls → Applications</b>, change <code>*.fox-referrals.pages.dev</code> to <code>fox-referrals.pages.dev</code> and set the path to <code>/api/quickbooks/*</code>.</p></li>
+          <li><span>Allow one operator</span><p>Use a 15-minute session, an Allow policy for the operator email, and independent MFA.</p></li>
+          <li><span>Enroll MFA</span><p>Open the App Launcher, then <b>Account → MFA devices → Add an MFA device</b>. Choose <b>Authenticator application</b>.</p></li>
+        </ol>
+        <div class="code-block compact"><div><span>Direct MFA enrollment</span><button type="button" data-copy="code-mfa">Copy</button></div><pre id="code-mfa"><code>https://YOUR-TEAM.cloudflareaccess.com/AddMfaDevice</code></pre></div>
+        <div class="warning neutral"><span>Webhook exception</span><strong>Create one exact Access bypass.</strong><p>Use <code>fox-referrals.pages.dev/api/quickbooks/webhook</code> with a Bypass policy for Everyone. Do not use a wildcard. The Worker still rejects requests without Intuit's HMAC.</p></div>
+        <h3>Add the Access values to Worker configuration</h3>
+        <div class="field-map three">
+          <div><span>ACCESS_TEAM_DOMAIN</span><code>https://YOUR-TEAM.cloudflareaccess.com</code></div>
+          <div><span>ACCESS_AUD</span><code>Operator app Audience tag</code></div>
+          <div><span>ACCESS_ADMIN_SUB</span><code>Operator sub / user_uuid</code></div>
+        </div>
+        <p class="checkpoint"><span>Checkpoint</span>The claim page is public. The status page requires OTP and MFA. Webhook GET returns 405; an unsigned webhook POST returns 400.</p>
+      </section>
+
+      <section class="doc-section" id="intuit" data-title="Intuit app">
+        <div class="section-heading"><span>06</span><div><p>Provider setup</p><h2>Configure the Intuit development app</h2></div></div>
+        <ol class="steps">
+          <li><span>Select the app</span><p>Open <b>developer.intuit.com → My Hub → Workspaces</b>. Create or select an app with QuickBooks Online accounting access. Stay on <b>Development</b>.</p></li>
+          <li><span>Copy the Company ID</span><p>Open <b>My Hub → Sandbox companies</b>. Copy the numeric ID below the company name into <code>QB_REALM_ID</code>.</p></li>
+          <li><span>Collect credentials</span><p>Open <b>Keys &amp; Credentials → Development</b>. Reveal the Client ID and Client Secret. Keep both private.</p></li>
+        </ol>
+        <h3>Application URLs</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Intuit field</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td>Host domain</td><td><code>fox-referrals.pages.dev</code></td></tr>
+              <tr><td>Launch URL</td><td><code>https://fox-referrals.pages.dev/api/quickbooks/status</code></td></tr>
+              <tr><td>Disconnect URL</td><td><code>https://fox-referrals.pages.dev/api/quickbooks/status</code></td></tr>
+              <tr><td>Connect/Reconnect URL</td><td><code>https://fox-referrals.pages.dev/api/quickbooks/connect</code></td></tr>
+              <tr class="important-row"><td>Redirect URI</td><td><code>https://fox-referrals.pages.dev/api/quickbooks/callback</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Webhook subscription</h3>
+        <ol class="steps compact-steps">
+          <li><span>Endpoint</span><p><code>https://fox-referrals.pages.dev/api/quickbooks/webhook</code></p></li>
+          <li><span>Payload</span><p>Enable <b>cloud event payload format</b>.</p></li>
+          <li><span>Events</span><p>Select Invoice and Payment: <code>created</code>, <code>updated</code>, <code>deleted</code>, and <code>void</code>. Deselect <code>emailed</code>.</p></li>
+          <li><span>Verifier</span><p>Save, then copy the Verifier token. It is not the Client Secret.</p></li>
+        </ol>
+      </section>
+
+      <section class="doc-section" id="secrets" data-title="Worker secrets">
+        <div class="section-heading"><span>07</span><div><p>Encrypted configuration</p><h2>Store the four Worker secrets</h2></div></div>
+        <p>Run one command at a time. Paste each value only when Wrangler displays its hidden prompt.</p>
+        <div class="code-block"><div><span>PowerShell</span><button type="button" data-copy="code-secrets">Copy</button></div><pre id="code-secrets"><code>npx.cmd wrangler secret put QB_CLIENT_ID --config wrangler.worker.jsonc
+npx.cmd wrangler secret put QB_CLIENT_SECRET --config wrangler.worker.jsonc
+npx.cmd wrangler secret put QB_WEBHOOK_VERIFIER --config wrangler.worker.jsonc
+node scripts/set-token-key.mjs</code></pre></div>
+        <p>The last command creates and uploads <code>QB_TOKEN_KEY</code> without printing it. Change <code>QB_ENABLED</code> to <code>true</code>, then deploy.</p>
+        <div class="code-block compact"><div><span>Enable the integration</span><button type="button" data-copy="code-enable">Copy</button></div><pre id="code-enable"><code>npx.cmd wrangler deploy --config wrangler.worker.jsonc</code></pre></div>
+        <p class="checkpoint"><span>Checkpoint</span>All four secrets exist in the Worker. Their values do not appear in source, configuration, terminal history, or screenshots.</p>
+      </section>
+
+      <section class="doc-section" id="connect" data-title="Connect Sandbox">
+        <div class="section-heading"><span>08</span><div><p>OAuth</p><h2>Authorize the correct Sandbox company</h2></div></div>
+        <div class="browser-address"><span>Protected URL</span><code>https://fox-referrals.pages.dev/api/quickbooks/connect</code></div>
+        <ol class="steps">
+          <li><span>Pass Access</span><p>Sign in with the allowed email, email OTP, and enrolled MFA method.</p></li>
+          <li><span>Start authorization</span><p>Select <b>Authorize sandbox company</b>.</p></li>
+          <li><span>Choose the company</span><p>In Intuit, select the company whose ID matches <code>QB_REALM_ID</code>, then select <b>Connect</b>.</p></li>
+          <li><span>Confirm the result</span><p>Back on the operator page, check the company name and ID, then select <b>Confirm sandbox company</b>.</p></li>
+        </ol>
+        <div class="success-card"><span class="status-dot"></span><div><strong>Expected status: active</strong><p>It must not include <code>(paused)</code>. A commission with status <code>PENDING</code> is recorded but unpaid; it does not mean OAuth is pending.</p></div></div>
+        <div class="code-block"><div><span>Safe connection check</span><button type="button" data-copy="code-connection">Copy</button></div><pre id="code-connection"><code>npx.cmd wrangler d1 execute fox-referrals --remote --config wrangler.worker.jsonc --command "SELECT state,realm_id,paused,token_version,(token_envelope IS NOT NULL) AS has_encrypted_tokens FROM qb_connection WHERE id=1"</code></pre></div>
+      </section>
+
+      <section class="doc-section" id="test" data-title="End-to-end test">
+        <div class="section-heading"><span>09</span><div><p>Prove the full path</p><h2>Run one synthetic paid-invoice test</h2></div></div>
+        <h3>Create the staging fixture</h3>
+        <div class="code-block compact"><div><span>Remote staging seed</span><button type="button" data-copy="code-seed">Copy</button></div><pre id="code-seed"><code>npx.cmd wrangler d1 execute fox-referrals --remote --config wrangler.worker.jsonc --file seeds/staging.sql</code></pre></div>
+        <div class="test-lanes">
+          <article><span>Lane A · Claim</span><h3>Submit the referral</h3><dl><div><dt>URL</dt><dd><code>/claim?ref=staging-restaurant</code></dd></div><div><dt>Name</dt><dd>Staging Customer 001</dd></div><div><dt>Phone</dt><dd>(202) 555-0162</dd></div></dl><p>The form accepts US numbers only. Shop Genie is Fox's real booking page; stop there without booking.</p></article>
+          <article><span>Lane B · Invoice</span><h3>Create the accounting record</h3><ol><li>Create a Sandbox customer with the same phone. Email may be blank.</li><li>Create a Services invoice for USD 80.00.</li><li>Save it without emailing.</li><li>Confirm no reward while unpaid.</li></ol></article>
+          <article><span>Lane C · Payment</span><h3>Record full payment</h3><ol><li>Open <b>+ Create → Receive payment</b>.</li><li>Select the customer and Cash.</li><li>Apply the entire balance.</li><li>Select <b>Record and close</b>.</li></ol><p>Sandbox sales tax may change the total. The reward remains a fixed USD 10.00.</p></article>
+        </div>
+        <h3>Verify the stored result</h3>
+        <div class="code-block compact"><div><span>Read-only diagnostics</span><button type="button" data-copy="code-verify">Copy</button></div><pre id="code-verify"><code>npx.cmd wrangler d1 execute fox-referrals --remote --config wrangler.worker.jsonc --file scripts/verify-staging.sql</code></pre></div>
+        <div class="result-grid">
+          <div><span>Connection</span><strong>active</strong><small>paused = 0</small></div>
+          <div><span>Lead</span><strong>COMPLETED</strong><small>matched once</small></div>
+          <div><span>Rewards</span><strong>1</strong><small>never 2</small></div>
+          <div><span>Commission</span><strong>1000¢</strong><small>PENDING</small></div>
+        </div>
+        <p class="note"><b>Webhook timing:</b> Intuit states that the first notification may take up to five minutes. Intake <code>scan</code> proves scheduled reconciliation found the invoice. Only <code>webhook</code> proves actual Intuit webhook delivery.</p>
+      </section>
+
+      <section class="doc-section" id="troubleshooting" data-title="Troubleshooting">
+        <div class="section-heading"><span>10</span><div><p>When a screen does not match</p><h2>Troubleshooting index</h2></div></div>
+        <div class="trouble-list">
+          <details><summary><span>No authentication methods set up</span><b>Cloudflare Access</b></summary><p>Select <b>Setup MFA</b> or open the direct <code>/AddMfaDevice</code> URL and enroll an authenticator application.</p></details>
+          <details><summary><span>Welcome! No applications are available</span><b>Cloudflare Access</b></summary><p>Enable the Access App Launcher for the operator email, enroll MFA, then return to the protected operator URL.</p></details>
+          <details><summary><span>INVALID_ORIGIN</span><b>Operator page</b></summary><p>Reopen <code>/api/quickbooks/connect</code> and use the button on the fresh page. Do not open the form action directly or resubmit a stale page.</p></details>
+          <details><summary><span>QUICKBOOKS_NOT_CONFIGURED</span><b>Worker</b></summary><p>Check every required non-secret variable and all four Worker secrets. Do not print their values.</p></details>
+          <details><summary><span>Wrong company or ID</span><b>Intuit</b></summary><p>The App ID was probably copied into <code>QB_REALM_ID</code>. Use the ID shown under <b>Sandbox companies</b>.</p></details>
+          <details><summary><span>refresh_unknown (paused)</span><b>OAuth safety hold</b></summary><p>Disconnect the app from the Sandbox company and follow the technical recovery procedure. Never edit stored tokens or expiry values.</p></details>
+          <details><summary><span>The claim rejects my phone</span><b>Claim page</b></summary><p>The current product accepts US/NANP numbers only. Use the documented synthetic US number for testing.</p></details>
+          <details><summary><span>Shop Genie opened</span><b>Expected behavior</b></summary><p>The claim succeeded. Shop Genie is Fox's real public booking page. Stop there during the synthetic test.</p></details>
+          <details><summary><span>No webhook event appeared</span><b>Intuit webhook</b></summary><p>Wait at least five minutes, then check the exact endpoint, Access bypass, verifier, CloudEvents setting, and Invoice/Payment subscriptions. Do not force database rows.</p></details>
+        </div>
+      </section>
+
+      <section class="doc-section finish" id="finish" data-title="Final checklist">
+        <div class="section-heading"><span>11</span><div><p>Close the service bay</p><h2>Final setup checklist</h2></div></div>
+        <div class="final-progress"><div><span id="completed-count">0</span>/11 complete</div><progress id="setup-progress" max="11" value="0">0%</progress></div>
+        <div class="final-checklist" id="final-checklist">
+          <label><input type="checkbox"> <span><code>npm.cmd run check</code> passes.</span></label>
+          <label><input type="checkbox"> <span>Remote migrations have no pending items.</span></label>
+          <label><input type="checkbox"> <span>The claim page opens without Access.</span></label>
+          <label><input type="checkbox"> <span>Operator pages require email OTP and MFA.</span></label>
+          <label><input type="checkbox"> <span>Only the exact webhook path bypasses login.</span></label>
+          <label><input type="checkbox"> <span>The Company ID is stored in <code>QB_REALM_ID</code>.</span></label>
+          <label><input type="checkbox"> <span>All four Worker secrets are stored.</span></label>
+          <label><input type="checkbox"> <span>OAuth reports <code>active</code> and <code>paused=0</code>.</span></label>
+          <label><input type="checkbox"> <span>The synthetic lead is <code>COMPLETED</code>.</span></label>
+          <label><input type="checkbox"> <span>Exactly one 1000-cent commission exists.</span></label>
+          <label><input type="checkbox"> <span>The result is recorded in <code>docs/STATUS.md</code> without secrets.</span></label>
+        </div>
+        <div class="finish-note"><strong>Staging evidence is not production approval.</strong><p>Real webhook delivery, natural token renewal, independent review, monitoring, retention, restore testing, and production gates remain open.</p></div>
+      </section>
+
+      <div class="no-results" id="no-results" hidden><strong>No matching section</strong><p>Try a shorter term such as “MFA”, “webhook”, “realm”, or “invoice”.</p></div>
+      <footer class="docs-footer"><span>FOX AUTO SERVICES · OPERATOR MANUAL</span><a href="#overview">Back to top ↑</a></footer>
+    </main>
+  </div>
+</body>
+</html>

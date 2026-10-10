@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Claim your oil change offer at Fox Auto Services and schedule your visit.">
+  <title>Your oil change offer | Fox Auto Services</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/claim.js" defer></script>
+</head>
+<body>
+  <header class="brand desktop-brand"><img class="brand-logo" src="/fox-logo.png" alt="Fox Auto Services" width="144" height="144" fetchpriority="high"></header>
+  <main class="offer">
+    <section class="offer-intro" aria-labelledby="offer-title">
+      <div class="mobile-brand-row">
+        <div class="mobile-brand"><img class="mobile-brand-logo" src="/fox-logo.png" alt="Fox Auto Services" width="112" height="112"></div>
+        <div class="service-mark" aria-hidden="true"><svg viewBox="0 0 64 72" fill="none"><path d="M32 3C27 14 10 31 10 44a22 22 0 0 0 44 0C54 31 37 14 32 3Z" fill="currentColor"/><path d="M20 43c0 8 4 12 11 13" stroke="white" stroke-width="4" stroke-linecap="round"/></svg><span>A little care.<br>A lot of miles.</span></div>
+      </div>
+      <p class="eyebrow">A gift for your next visit</p>
+      <h1 id="offer-title">You've unlocked <em>50% OFF</em> your Oil Change at Fox Auto Services!</h1>
+      <p class="intro-copy">Leave your details, then choose a time that works for you.</p>
+      <div class="visit-note"><span aria-hidden="true">↗</span> Your next stop: a smoother ride.</div>
+    </section>
+    <section class="form-panel" aria-labelledby="form-title">
+      <h2 id="form-title">Make it yours.</h2>
+      <p class="form-description">Just a few details before you book.</p>
+      <form id="claim-form">
+        <label for="customer-name">Full name</label>
+        <input id="customer-name" name="customer_name" autocomplete="name" maxlength="120" placeholder="Your full name" required>
+        <label for="customer-phone">Phone number</label>
+        <input id="customer-phone" name="customer_phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="32" placeholder="(202) 555-0123" aria-describedby="phone-hint" required>
+        <p class="field-hint" id="phone-hint">Use the same number when booking your visit.</p>
+        <p id="form-error" class="form-error" role="alert" tabindex="-1" hidden></p>
+        <button id="claim-button" type="submit" disabled>Claim Discount &amp; Schedule Appointment <span aria-hidden="true">↗</span></button>
+        <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+        <p class="privacy-note">Fox Auto Services will use these details to match your offer to your visit. You'll choose your appointment on Shop Genie.</p>
+      </form>
+      <noscript><p class="form-error">Enable JavaScript to claim this offer and continue to booking.</p></noscript>
+    </section>
+  </main>
+  <footer>FOX AUTO SERVICES <span>Good care starts here.</span></footer>
+</body>
+</html>
