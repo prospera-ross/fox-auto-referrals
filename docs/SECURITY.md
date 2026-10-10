@@ -1,9 +1,9 @@
 # Security requirements and evidence gaps
 
 Baseline: OWASP ASVS **5.0.0 Level 2**, including applicable L1 controls, required
-by INIT FIN-01. No compliance/certification claim. This is an initial mapping for
-the implemented public slice and sandbox financial integration. A complete versioned
-applicability register and named independent reviewer are required before live
+by FIN-01 in [the QuickBooks profile](../INIT.profiles/quickbooks.md).
+No compliance/certification claim. This is an initial mapping for the implemented
+public slice and sandbox financial integration. A complete versioned applicability register and named independent reviewer are required before live
 boundaries are implemented (D08). Do not mark unimplemented controls inapplicable.
 The user has accepted ownership of QBO access and security/release approval;
 this is distinct from independent review or completed verification evidence.
@@ -29,7 +29,8 @@ complete per-ID applicability mapping; this partial table does not waive them.
 ## FIN / SEC-T verification register
 
 All live controls require the combined manual/automated evidence specified in
-INIT. No independent or human manual security verification has been performed.
+the [QuickBooks profile](../INIT.profiles/quickbooks.md). No independent or human
+manual security verification has been performed.
 
 | Requirement / tests | Defined and implemented scope | Automated evidence / outstanding work |
 | --- | --- | --- |

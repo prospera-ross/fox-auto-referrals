@@ -39,6 +39,7 @@ commits if useful, but do not initialize/stage/commit/push Git without authoriza
 ## Delivery
 
 Report changed behavior, tests, and material limits. Deployment and activation are
-separate authorized steps under OPERATIONS.md and INIT.md gates G01-G08. Do not
+separate authorized steps under OPERATIONS.md and gates G01-G08 in the
+[QuickBooks profile](../INIT.profiles/quickbooks.md). Do not
 label a partial OAuth scaffold or a passing checklist production-ready. Publishing,
 paid resources and live QBO operations require their own authorized scope.

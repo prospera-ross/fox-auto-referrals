@@ -30,7 +30,8 @@ from proposed business policies. `INIT.md` remains the initialization procedure.
   source, logs, browser storage, error messages, or test fixtures.
 - QBO notifications are hints, never proof of payment. Read current records;
   bind every operation to the authorized company/environment and deduplicate effects.
-- Financial profile FIN-01 through FIN-10 and release gates in INIT.md apply.
+- Financial profile FIN-01 through FIN-10 and release gates in
+  [INIT.profiles/quickbooks.md](INIT.profiles/quickbooks.md) apply.
   The user authorized sandbox OAuth, renewal and webhook implementation; see
   docs/SANDBOX.md for engineering defaults and docs/QUICKBOOKS_SETUP.md for setup.
   Keep production blocked. Sandbox implementation/tests do not close production

@@ -56,7 +56,8 @@ need evidence. Production is unverified.
    procedures. Keep preview resources separate from production PII.
 
 Review protected deployment paths and signoffs first; current files do not enforce
-INIT G01-G08. Do not bypass the live claim guard by leaving APP_ENV set to local.
+G01-G08 in [the QuickBooks profile](../INIT.profiles/quickbooks.md).
+Do not bypass the live claim guard by leaving APP_ENV set to local.
 Logging is disabled in Worker configuration to avoid accidental data exposure;
 add redacted operational metrics/logging with retention and tested alert routing
 before release. Review Pages and account-level logging independently.
@@ -78,8 +79,8 @@ that the sandbox files are absent.
    verified company confirmation and atomic exclusive binding. Redact callback
    query strings at every ingress layer. Do not assume PKCE support without review.
 3. Use a protected managed credential/key store with authenticated context-bound
-   encryption. Implement INIT FIN-05's durable refresh state machine and uncertain
-   response holds; expiry of a lease never authorizes a competing refresh. Implement
+   encryption. Implement FIN-05 from the QuickBooks profile: a durable refresh
+   state machine and uncertain response holds; expiry of a lease never authorizes a competing refresh. Implement
    generation-based disconnect/replacement and tracked revocation. No plain tokens
    in D1, client code, browser storage or Wrangler vars.
 4. Implement `AuthorizedQboReader` with runtime JSON validation, fixed provider

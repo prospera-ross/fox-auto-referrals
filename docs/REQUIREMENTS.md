@@ -73,7 +73,9 @@ contract, post-accrual refunds/voids/chargebacks and contact/identity remediatio
 Refund exclusion from a percentage base is no longer relevant; later reversal
 of an already-earned reward was not specified and is not automatically performed.
 
-## Financial implementation gates (INIT D01-D08)
+## Financial implementation gates (D01-D08)
+
+Source: [QuickBooks initialization profile](../INIT.profiles/quickbooks.md).
 
 | ID | State / decision and impact | Accountable role / latest resolution point |
 | --- | --- | --- |
