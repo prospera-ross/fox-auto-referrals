@@ -120,11 +120,32 @@ Implementation sequencing and proposed API/design details are in
 [ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md). Numeric business reward limits remain
 unresolved for production; the existing schema ceiling is only defensive.
 
+### Partner application phase
+
+This phase begins only after the current QuickBooks webhook/delivery investigation
+is resolved and its release impact is understood. It is an accepted future product
+direction, not part of the implemented first slice or authorization to deploy it.
+
+| ID | Accepted future requirement / acceptance criterion | Priority |
+| --- | --- | --- |
+| PAR-01 | Build an application for referral partners, initially as a PWA; plan a later Flutter client against stable backend contracts | Later phase |
+| PAR-02 | Let each partner present its assigned referral QR code for customers to scan; the QR continues to open the existing public claim flow and must not expose rewards or tracking internals | Later phase |
+| PAR-03 | Notify the relevant partner when an attributed customer makes an appointment | Later phase |
+| PAR-04 | Notify the relevant partner when that customer completes the service | Later phase |
+| PAR-05 | Define additional lifecycle alerts separately; “and so on” does not authorize unspecified events, data disclosure or workflows | Later phase |
+
+Open before design: partner identity and access, tenant isolation, which customer
+details a partner may see, notification channels and consent, delivery/retry/read
+state, and the authoritative sources for appointment and service-completion events.
+The current fixed Shop Genie redirect does not supply appointment status; any such
+alert depends on the separately reviewed Shop Genie integration or another approved
+source. QuickBooks notifications remain hints and cannot alone prove service completion.
+
 1. Runnable local claim flow, schema, tested invoice-processing core, contracts.
 2. Approved OAuth/credential lifecycle, sandbox REST/webhook/recovery integration.
 3. Independent review, operational exercises and enforced release/activation gates.
 
-No partner portal, QR-printing service, automatic disbursement, SMS/email marketing,
-or QuickBooks financial writes in the requested first slice. Financial controls
-for QBO reads and local rewards remain applicable; exclusions need independent
-review before release. See SECURITY.md and OPERATIONS.md.
+No partner portal in the requested first slice, QR-printing service, automatic
+disbursement, SMS/email marketing, or QuickBooks financial writes. The future partner
+application above changes only the later roadmap; it does not relax current access,
+privacy or financial controls. See SECURITY.md and OPERATIONS.md.

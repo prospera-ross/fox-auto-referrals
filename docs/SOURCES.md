@@ -47,3 +47,45 @@ provider shapes, webhook delivery and production compatibility remain open.
 No assumption of a dedicated `Paid` webhook event, complete invoice contact fields,
 read-only OAuth accounting scope, refund finality, exactly-once delivery, or
 cash settlement from Balance=0. Those must be established or handled explicitly.
+
+## Webhook diagnostic review — 2026-10-10
+
+The dynamic [webhook guide](https://developer.intuit.com/app/developer/qbo/docs/develop/webhooks#configuring-webhooks)
+returned only an application shell; its official static configuration page above
+was readable. It documents Sandbox OAuth, separate Development subscriptions,
+signature validation and CloudEvents. Its five-minute first-notification guidance
+is not proof that a longer delay identifies the failing component.
+
+The official [best practices](https://static.developer.intuit.com/output_html/qbo/docs/develop/webhooks/best-practices.html)
+were retrieved directly over HTTPS after the web reader failed. They require HTTP
+200 within three seconds, describe retries from seconds through six-hour intervals,
+and warn that unacknowledged notifications can delay subsequent events. They also
+recommend asynchronous processing and CDC recovery for missed notifications.
+Our bounded invoice scan is not complete CDC. The live timing evidence collected after
+this documentation review is recorded below.
+
+The indexed [REST API webhook article](https://help.developer.intuit.com/s/article/Webhooks-for-QuickBooks-Online-REST-APIs)
+is dated 2019 and illustrates the legacy envelope. Use the current configuration
+reference and [Intuit's migration notice](https://blogs.intuit.com/2025/11/12/upcoming-change-to-webhooks-payload-structure/)
+for CloudEvents; do not switch this implementation to legacy based on that example.
+The exact [troubleshooting](https://help.developer.intuit.com/s/article/How-to-troubleshoot-Webhooks)
+and [delayed/missing notifications](https://help.developer.intuit.com/s/article/Delayed-or-missing-webhooks-notifications)
+articles returned Loading/CSS Error; their contents have not been reviewed.
+
+Code inspection: signature/JSON/envelope failures occur before `qb_events` writes.
+An empty authorized-realm inbox therefore cannot distinguish no delivery from an
+ingress rejection, parser rejection, or storage failure. The signed portal test
+proves that particular request succeeded, not every genuine delivery path.
+
+Sanitized real-time tails on 2026-10-10 observed the public Pages function and private
+Worker returning HTTP 200 to signed portal traffic in about 0.23 seconds with no
+runtime exception. The corresponding test event was stored as an expected sample-realm
+quarantine. No request attributable to the owner's authorized-realm description change
+arrived during the initial five-minute window. The change was only a harmless transport
+probe: product decisions ignore descriptions and read the current Invoice/Payment.
+The owner then created and fully paid Sandbox invoice 1040. The scheduled reader found
+the new invoice in the authorized realm and initially recorded it as unpaid, while no
+authorized-realm Invoice/Payment webhook reached the monitored Worker before the session
+stopped. A later reconciliation read was pending. Next compare the Development OAuth
+client ID with the app that owns the subscription; if they match, provide the sanitized
+timestamps and realm classification in an Intuit Webhooks/events-not-received case.

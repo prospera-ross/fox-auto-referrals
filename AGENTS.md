@@ -23,7 +23,9 @@ from proposed business policies. `INIT.md` remains the initialization procedure.
 - Any fully paid invoice qualifies, regardless of service/tax line items. First
   claim owns attribution for 30 shop-local calendar dates, claim date = day 1;
   use the latest allocated Payment.TxnDate. Later claims do not reset it.
-  Credit once per customer. No partner login or transfers; one shop/QBO company.
+  Credit once per customer. The current slice has no partner login or transfers and
+  one shop/QBO company. A later partner PWA/Flutter phase is recorded in requirements;
+  do not start it until the current webhook gate is resolved and the phase is authorized.
   The user owns QBO access and security/release approval. See requirements for
   accepted accounting-date semantics and remaining live integration gates.
 - No provider credentials, personal data, callback queries, or request bodies in
