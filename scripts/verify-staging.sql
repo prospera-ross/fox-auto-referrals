@@ -23,3 +23,12 @@ SELECT CASE WHEN e.digest=e.event_key THEN 'scan' ELSE 'webhook' END AS intake,
 FROM qb_events e JOIN qb_connection c ON c.id=1
   AND e.realm_id=c.realm_id AND e.generation=c.generation
 ORDER BY e.created_at DESC LIMIT 20;
+
+-- Webhook rows that never became jobs: parser rejections and other realms.
+-- Rows written before the 2026-10-14 inbox fix lack realm/entity hints and
+-- identical rejections collapsed into one row, so absence there is not proof.
+SELECT e.reason,e.realm_id=c.realm_id AS authorized_realm,e.entity_id,
+  COUNT(*) AS n,datetime(MAX(e.created_at)/1000,'unixepoch') AS latest_utc
+FROM qb_events e JOIN qb_connection c ON c.id=1
+WHERE e.state IN ('quarantined','conflict') AND e.digest<>e.event_key
+GROUP BY 1,2,3 ORDER BY latest_utc DESC LIMIT 20;

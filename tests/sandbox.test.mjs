@@ -262,6 +262,30 @@ test('webhook durably separates realms, deduplicates, detects conflicts and reje
   db.sqlite.close();
 });
 
+test('rejected webhook events stay distinct and keep routing hints across deliveries',async()=>{
+  const db=database(),env=envFor(db);await active(env);
+  const bad=patch=>({...event({type:'qbo.invoice.merged.v1'}),...patch});
+  await webhook(await signed(env,[bad({intuitentityid:'1040'})]),env);
+  await webhook(await signed(env,[bad({intuitentityid:'1041'})]),env);
+  await webhook(await signed(env,[{malformed:true,intuitaccountid:env.QB_REALM_ID}]),env);
+  await webhook(await signed(env,[{malformed:false}]),env);
+  const rows=db.sqlite.prepare("SELECT realm_id,entity_id,reason FROM qb_events WHERE state='quarantined' ORDER BY reason,entity_id,realm_id").all();
+  assert.deepEqual(rows.map(r=>[r.realm_id,r.entity_id,r.reason]),[
+    [null,null,'invalid_event'],[env.QB_REALM_ID,null,'invalid_event'],
+    [env.QB_REALM_ID,'1040','unsupported_event'],[env.QB_REALM_ID,'1041','unsupported_event']]);
+  db.sqlite.close();
+});
+
+test('webhook accepts genuine events without optional fields and large batches',async()=>{
+  const db=database(),env=envFor(db);await active(env);
+  const {datacontenttype,time,...minimal}=event();
+  const many=Array.from({length:150},(_,i)=>event({intuitentityid:String(200+i),intuitaccountid:'999'}));
+  assert.equal((await webhook(await signed(env,[minimal,...many]),env)).status,200);
+  assert.equal(db.sqlite.prepare("SELECT count(*) n FROM qb_events WHERE state='pending'").get().n,1);
+  assert.equal(db.sqlite.prepare("SELECT count(*) n FROM qb_events WHERE reason='unauthorized_company'").get().n,150);
+  db.sqlite.close();
+});
+
 test('webhook does not acknowledge failed durable storage',async()=>{
   const db=database(),env=envFor(db);await active(env);
   const bad={...env,DB:{prepare(sql){if(sql.startsWith('INSERT INTO qb_events'))throw new Error('synthetic D1 failure');return db.prepare(sql);}}};
