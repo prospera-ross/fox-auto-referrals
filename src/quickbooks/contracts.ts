@@ -53,4 +53,6 @@ export interface ConversionStore {
   /** Production adapter must atomically recheck current binding generation and
    * pause state alongside deduplicated insertion; no check/send race waiver. */
   creditOnce(conversion: Conversion): Promise<'created' | 'duplicate' | 'held'>;
+  /** Lead already credited for this exact provider invoice, if any. */
+  creditedLead(binding: Binding, invoiceId: string): Promise<string | null>;
 }

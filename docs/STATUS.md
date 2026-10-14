@@ -131,3 +131,33 @@ Keep production blocked; partner PWA/Flutter work follows resolution of this gat
   guarded D1 SQL marks the gen-7 attempt `abandoned` and moves the connection to
   `revoked` (generation 8, ciphertext cleared, audited); owner reconnects and confirms;
   then read-only verification of scan and webhook processing.
+
+## Recovery and end-to-end webhook evidence — 2026-10-14
+- Owner deployed Worker version 1d2385b1 (03:55:23 UTC), disconnected Fox-auto in the
+  sandbox company's Manage integrations, ran the guarded recovery SQL (connection
+  `revoked`, generation 8, ciphertext cleared, gen-7 attempt `abandoned`, audited),
+  then reconnected and confirmed the company; status page reported active.
+- 04:02:32-33 UTC: scheduled scan resumed and processed recent invoices (unpaid and
+  claim_ineligible outcomes; no new commission expected or created).
+- 04:03:47 UTC: authorized-realm webhook for invoice 151 was received, verified,
+  stored as `pending`, and processed by cron to `done`/`invoice_unpaid` in one attempt.
+  The authorized-realm webhook delivery gate is satisfied for sandbox.
+- 04:05:59 UTC: webhook payment 152 created -> linked invoice 149 read as fully paid
+  -> `claim_ineligible`; 04:06:50 invoice 149 updated gave the same result. Evidence
+  shows invoices 145 and 149 share QBO customer 100000001, whose only lead is already
+  COMPLETED by the 145 commission, so one-reward-per-customer held. Rescan of 145 did
+  not duplicate. Ledger unchanged: 1 PENDING / 1000 cents. Connection generation is 9.
+- Observation: every reprocessing retains a new qb_evidence row (149 has three); not a
+  money risk, but relevant to D07 retention.
+- New-customer test: 04:12:09 UTC public claim (staging-restaurant, synthetic
+  555-01xx phone); sandbox customer with the same Phone; invoice 153 webhook
+  04:16:04 -> invoice_unpaid; payment 154 webhook 04:17:12. Cron at ~04:17:46 created
+  exactly one commission: invoice 153, 5400 cents paid, 1000 cents PENDING, payment and
+  claim date 2026-10-14, generation 9. Ledger now 2 PENDING / 2000 cents.
+- The queued scan row for 153 ran before the payment webhook job in that cycle and
+  created the conversion; the webhook job then reported `claim_ineligible` because the
+  lead was already COMPLETED. Money was correct. Local fix (pending deploy): an
+  invoice already credited to a matching lead returns `duplicate` before retaining
+  evidence, which also stops repeated evidence rows. 47 tests pass.
+- Not yet exercised: natural token renewal under the new refresh-failure audit.
+- Intuit case #00230633 can be updated: delivery observed; the gap was a local hold.

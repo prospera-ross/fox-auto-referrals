@@ -137,6 +137,8 @@ test('first claim wins across partners and equal timestamps; later claims cannot
   assert.equal(conversion.partner_id, first.partner_id);
   assert.equal(conversion.reward_amount_cents, 2500);
   assert.equal(conversion.payment_date, f.evidence.paymentDate);
+  // A later webhook/scan for the credited invoice is a duplicate, not ineligible.
+  assert.equal(await processInvoice(binding, '100', { ...f, store: new LocalConversionStore(db, 'synthetic-local') }), 'duplicate');
   db.sqlite.close();
 });
 

@@ -53,4 +53,10 @@ export class LocalConversionStore implements ConversionStore {
       .bind(c.binding.environment, c.binding.realmId, c.invoiceId).first<{ lead_id: string }>();
     return existing?.lead_id === c.leadId ? 'duplicate' : 'held';
   }
+  async creditedLead(binding: Binding, invoiceId: string): Promise<string | null> {
+    const row = await this.db.prepare(`SELECT lead_id FROM conversions
+      WHERE provider_environment = ? AND quickbooks_realm_id = ? AND quickbooks_invoice_id = ?`)
+      .bind(binding.environment, binding.realmId, invoiceId).first<{ lead_id: string }>();
+    return row?.lead_id ?? null;
+  }
 }

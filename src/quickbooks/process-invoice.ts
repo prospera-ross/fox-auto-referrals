@@ -60,6 +60,10 @@ export async function processInvoice(
   if (phone && candidates.some(lead => lead.customer_phone !== phone)) return 'held';
   if (!phone && new Set(candidates.map(lead => lead.customer_phone)).size > 1) return 'held';
   if (!candidates.length) return 'unmatched';
+  // A webhook and a scan can both reach an invoice already credited to this
+  // customer; report it as a duplicate without retaining more evidence.
+  const credited = await store.creditedLead(binding, invoiceId);
+  if (credited) return candidates.some(lead => lead.id === credited) ? 'duplicate' : 'held';
   const evidence = await qbo.retainEvidence(binding, invoice, payments);
   if (!evidence?.reference) return 'held';
   let lead;
