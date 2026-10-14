@@ -1,7 +1,10 @@
 ﻿# Current handoff — 2026-10-10
 
+Updated with provider support evidence on 2026-10-13.
+
 ## Current objective and boundaries
-Local cron and read-only staging diagnostics passed; genuine webhook/visual checks open.
+Local cron and read-only staging diagnostics passed; Intuit now asserts successful
+webhook sending, but application receipt/processing and the visual checks remain open.
 Production remains blocked. Prior documentation commit authorization was completed;
 no new commit, deployment, paid resource, push or provider mutation. Keep secrets ignored.
 Repository: prospera-ross/fox-auto-referrals; use git log for the current revision.
@@ -45,6 +48,9 @@ Repository: prospera-ross/fox-auto-referrals; use git log for the current revisi
 - Sandbox Manage integrations screenshot lists Fox-auto, with no pending task shown;
   portal app also named Fox-auto. Display names alone do not compare OAuth client IDs.
 - Scheduled reads matched the converted invoice to the authorized realm; no provider change.
+- On 2026-10-13, Intuit Support replied that it is successfully sending webhooks to
+  the exact configured endpoint. The reply supplied no delivery timestamps, HTTP
+  statuses, request/event identifiers or realm/entity correlation.
 - Full application suite/build and an active provider processing test were not rerun.
 
 ## Prior execution evidence (carried forward)
@@ -62,7 +68,8 @@ Repository: prospera-ross/fox-auto-referrals; use git log for the current revisi
   filters, QR decoding/download and live CSS/JS hashes passed. Live visual smoke pending.
 
 ## Remaining gaps
-- Genuine authorized-realm Invoice-created/Payment-created delivery remains unverified.
+- Genuine authorized-realm Invoice/Payment receipt and processing remain unverified
+  locally despite Intuit Support's general successful-delivery assertion.
 - Authenticated live dashboard visual smoke remains blocked by browser automation.
 - Full CDC/backfill, automatic liability reversal and immutable external audit absent.
 - Ingress logging review, load, retention/deletion, restore/alerts, independent review,
@@ -74,7 +81,35 @@ Repository: prospera-ross/fox-auto-referrals; use git log for the current revisi
 Prior documentation commits: manual/CSS (15dfeee), QuickBooks profile (66da384),
 commit-checkpoint policy/handoff (47679b5); none pushed or deployed in this session.
 This handoff records the sanitized ingress evidence and remaining validation gaps.
-Next: inspect invoice 1040's post-stop scheduled reread (due after 21:21:37 UTC), then
-compare the Development OAuth client ID with the app that owns the webhook subscription.
-If they match, file an Intuit Webhooks/events-not-received case with sanitized timestamps.
+Invoice 1040 follow-up: remote D1 read-only checks found no qb_events row for it and no
+evidence row; the ledger stayed 1 PENDING / 1000 cents. Owner confirmed the Development
+Client ID matches QB_CLIENT_ID in .dev.vars (deployed secret not independently read) and
+that the workspace holds only the Fox-auto app. Intuit Support case #00230633 (Webhooks,
+Events not received) was opened 2026-10-12 with sanitized timestamps. On 2026-10-13,
+Support asserted that webhooks are being sent successfully to the exact endpoint and
+asked Fox to inspect application logs, but provided no correlatable delivery details.
+Historical Worker invocation logs are unavailable under the deployed
+`observability.enabled=false` configuration. If retained, review Cloudflare Security
+Events/request analytics for 2026-10-10 20:45-22:00 UTC. Ask Intuit in the existing
+ticket for UTC delivery-attempt timestamps, response statuses, Intuit request/event IDs,
+and confirmation that the assertion covers invoice 1040's authorized realm. Then create
+one new controlled Sandbox change while sanitized real-time tails watch both Pages and
+the private Worker, followed by the read-only inbox/job diagnostic. Send the realm ID
+only via the support ticket; do not send credentials, payloads or customer data.
 Keep production blocked; partner PWA/Flutter work follows resolution of this gate.
+
+## Webhook inbox fix — 2026-10-14 (local only, not deployed)
+- Defect: every rejected CloudEvent with the same reason and array index shared one
+  `event_key`, so after the first rejection later ones were silent duplicates; rejected
+  rows also dropped realm/entity, and `verify-staging.sql` joined on realm/generation.
+  A genuine authorized-realm event failing validation was therefore invisible.
+- Parser rejected the whole delivery (HTTP 400) above 100 events or 256 KB; Intuit sets
+  no limit, mixes realms in one delivery and suggests a 2 MB bound. Now 1000 / 2 MB,
+  D1 writes in atomic 100-row batches.
+- Only routing fields are required; `time` is unused and `datacontenttype` may be absent.
+- Rejected rows key on their own byte digest and keep numeric realm/entity hints. Webhook
+  logs carry fixed reasons and disposition counts only (no body, headers, IDs or realm).
+- `verify-staging.sql` adds a quarantine/conflict summary. Rows stored before this fix
+  cannot be reinterpreted.
+- Executed: `npm run check` (45 tests), local migrate/seed, both dev servers, 5 Chrome
+  browser tests and a local claim. Not executed: deploy, staging tail, provider event.

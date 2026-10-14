@@ -86,6 +86,11 @@ probe: product decisions ignore descriptions and read the current Invoice/Paymen
 The owner then created and fully paid Sandbox invoice 1040. The scheduled reader found
 the new invoice in the authorized realm and initially recorded it as unpaid, while no
 authorized-realm Invoice/Payment webhook reached the monitored Worker before the session
-stopped. A later reconciliation read was pending. Next compare the Development OAuth
-client ID with the app that owns the subscription; if they match, provide the sanitized
-timestamps and realm classification in an Intuit Webhooks/events-not-received case.
+stopped. A later read found no inbox/evidence row for invoice 1040, while reconciliation
+still handled the invoice. The owner confirmed the Development OAuth client ID matches
+the local configured client ID and opened Intuit Support case #00230633. On 2026-10-13,
+Support asserted that it was successfully sending webhooks to the exact endpoint, but
+provided no delivery timestamps, response statuses, request/event IDs or realm/entity
+correlation. That assertion narrows the ingress investigation but does not prove receipt,
+signature acceptance, persistence or authorized-realm processing. Correlate a new
+controlled event with sanitized live tails and ask Support for those delivery details.
