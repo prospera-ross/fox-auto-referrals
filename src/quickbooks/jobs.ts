@@ -1,5 +1,5 @@
 import { sha256 } from '../http.ts';
-import { connection, configured } from './env.ts';
+import { audit, connection, configured } from './env.ts';
 import type { QbEnv } from './env.ts';
 import type { Binding } from './contracts.ts';
 import { SandboxReader } from './reader.ts';
@@ -74,8 +74,10 @@ export async function runScheduled(env: QbEnv, send: Fetcher = fetch): Promise<v
   configured(env);
   const now=Date.now();
   await env.DB.prepare('DELETE FROM qb_oauth_states WHERE expires_at<?').bind(now).run();
-  await env.DB.prepare(`UPDATE qb_connection SET state='refresh_unknown',paused=1
-    WHERE state IN ('authorizing','refresh_prepared','refresh_dispatched') AND attempt_deadline<?`).bind(now).run();
+  const expired=await env.DB.prepare(`UPDATE qb_connection SET state='refresh_unknown',paused=1
+    WHERE state IN ('authorizing','refresh_prepared','refresh_dispatched') AND attempt_deadline<? RETURNING generation`).bind(now).first<{generation:number}>();
+  // An interrupted dispatcher leaves no catch-path audit; record the expiry itself.
+  if(expired)await audit(env,'refresh_deadline_expired',expired.generation);
   await env.DB.prepare("UPDATE qb_token_attempts SET state='unknown' WHERE state IN ('prepared','dispatched') AND deadline<?").bind(now).run();
   let c=await connection(env);
   if(c.state==='revocation_pending'||(c.state==='pending'&&c.pending_until<now)){await revoke(env,send);return;}

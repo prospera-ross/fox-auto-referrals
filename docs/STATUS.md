@@ -113,3 +113,21 @@ Keep production blocked; partner PWA/Flutter work follows resolution of this gat
   cannot be reinterpreted.
 - Executed: `npm run check` (45 tests), local migrate/seed, both dev servers, 5 Chrome
   browser tests and a local claim. Not executed: deploy, staging tail, provider event.
+
+## Post-deploy diagnosis — 2026-10-14
+- Owner deployed Worker version 0dc45eed at 03:44:36 UTC. At 03:47:40 UTC the first
+  genuine authorized-realm webhook was received, verified and stored (invoice 149,
+  updated). Delivery for the authorized realm is now observed.
+- It was held because the connection has been `refresh_unknown`/paused since the
+  2026-10-11 02:38:34 UTC refresh attempt (generation 7, token v8; prior hourly
+  refreshes succeeded; refresh grant valid until 2027-01-19). Cause is unrecorded.
+- Fix (local, pending deploy): authorized-realm events during a hold are labeled
+  `connection_inactive`; refresh failures audit `refresh_failed_<category>` and
+  scheduler expiry audits `refresh_deadline_expired`. 47 tests pass.
+- Known issue: from `refresh_unknown`, the status-page Disconnect leaves
+  `revocation_pending` with an unknown attempt and the cron re-sends revoke each minute.
+  Do not use it for this recovery.
+- Recovery order: deploy; owner disconnects Fox-auto in the Intuit sandbox company;
+  guarded D1 SQL marks the gen-7 attempt `abandoned` and moves the connection to
+  `revoked` (generation 8, ciphertext cleared, audited); owner reconnects and confirms;
+  then read-only verification of scan and webhook processing.

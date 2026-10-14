@@ -202,6 +202,7 @@ test('uncertain renewal is held and never retried; late results cannot reactivat
   const fail=async()=>{calls++;throw new Error('synthetic network failure');};
   await assert.rejects(getAccessToken(env,1,fail));await assert.rejects(getAccessToken(env,1,fail));
   assert.equal(calls,1);assert.equal(db.sqlite.prepare('SELECT state FROM qb_connection').get().state,'refresh_unknown');
+  assert.deepEqual(db.sqlite.prepare('SELECT action FROM qb_audit').all().map(r=>r.action),['refresh_failed_transport_other']);
   db.sqlite.close();
   const db2=database(),env2=envFor(db2);await active(env2,Date.now()-1);
   await assert.rejects(getAccessToken(env2,1,async()=>{
@@ -283,6 +284,24 @@ test('webhook accepts genuine events without optional fields and large batches',
   assert.equal((await webhook(await signed(env,[minimal,...many]),env)).status,200);
   assert.equal(db.sqlite.prepare("SELECT count(*) n FROM qb_events WHERE state='pending'").get().n,1);
   assert.equal(db.sqlite.prepare("SELECT count(*) n FROM qb_events WHERE reason='unauthorized_company'").get().n,150);
+  db.sqlite.close();
+});
+
+test('authorized-company events during a hold are labeled connection_inactive',async()=>{
+  const db=database(),env=envFor(db);await active(env);
+  db.sqlite.exec("UPDATE qb_connection SET state='refresh_unknown',paused=1");
+  await webhook(await signed(env,[event(),event({intuitaccountid:'999'})]),env);
+  assert.deepEqual(db.sqlite.prepare('SELECT realm_id,reason FROM qb_events ORDER BY realm_id').all().map(r=>[r.realm_id,r.reason]),
+    [[env.QB_REALM_ID,'connection_inactive'],['999','unauthorized_company']]);
+  db.sqlite.close();
+});
+
+test('an interrupted renewal past its deadline is held and audited by the scheduler',async()=>{
+  const db=database(),env=envFor(db);await active(env);
+  db.sqlite.prepare("UPDATE qb_connection SET state='refresh_dispatched',attempt_id='x',attempt_deadline=?").run(Date.now()-1);
+  await runScheduled(env,async()=>{throw new Error('no provider call expected');});
+  assert.equal(db.sqlite.prepare('SELECT state FROM qb_connection').get().state,'refresh_unknown');
+  assert.deepEqual(db.sqlite.prepare('SELECT action FROM qb_audit').all().map(r=>r.action),['refresh_deadline_expired']);
   db.sqlite.close();
 });
 

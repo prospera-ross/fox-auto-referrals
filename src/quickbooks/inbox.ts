@@ -33,10 +33,11 @@ export async function webhook(request: Request, env: QbEnv): Promise<Response> {
       ?await sha256(JSON.stringify(['sandbox',env.QB_CLIENT_ID,event.source,event.id,event.intuitaccountid,null,null]))
       :await sha256(JSON.stringify(['sandbox',env.QB_CLIENT_ID,'rejected',digest]));
     const realm=event?.intuitaccountid ?? (d.kind==='rejected'?d.realmId:null);
-    const active=event && event.intuitaccountid===env.QB_REALM_ID && c.realm_id===env.QB_REALM_ID &&
-      ['active','refresh_prepared','refresh_dispatched'].includes(c.state) && !c.paused;
+    const ours=event && event.intuitaccountid===env.QB_REALM_ID && c.realm_id===env.QB_REALM_ID;
+    const active=ours && ['active','refresh_prepared','refresh_dispatched'].includes(c.state) && !c.paused;
     const type=event?.type.split('.') ?? [];
-    const reason=active?null:(d.kind==='rejected'?d.reason:'unauthorized_company');
+    // Distinguish a held authorized company from a foreign one for operators.
+    const reason=active?null:d.kind==='rejected'?d.reason:ours?'connection_inactive':'unauthorized_company';
     const label=active?'pending':reason!;
     counts[label]=(counts[label]??0)+1;
     statements.push(env.DB.prepare(`INSERT INTO qb_events(event_key,digest,realm_id,generation,entity_type,entity_id,operation,state,reason,available_at,created_at)

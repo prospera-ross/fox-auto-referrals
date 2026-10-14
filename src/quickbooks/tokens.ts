@@ -106,9 +106,11 @@ export async function getAccessToken(env: QbEnv, generation: number, send: Fetch
     if (!saved.meta.changes) throw new Error('stale_refresh');
     await env.DB.prepare("UPDATE qb_token_attempts SET state='succeeded' WHERE id=?").bind(attempt).run();
     return fresh.access_token;
-  } catch {
+  } catch (error) {
     await env.DB.prepare("UPDATE qb_connection SET state='refresh_unknown',paused=1 WHERE id=1 AND generation=? AND attempt_id=? AND state='refresh_dispatched'").bind(generation,attempt).run();
     await env.DB.prepare("UPDATE qb_token_attempts SET state='unknown' WHERE id=? AND state<>'succeeded'").bind(attempt).run();
+    // Fixed category only, so a later hold can be diagnosed without logs.
+    await audit(env,`refresh_failed_${error instanceof TokenRequestError?error.reason:'internal'}`,generation).catch(()=>{});
     throw new HttpError(503,'REFRESH_HELD','Token renewal requires operator recovery.');
   }
 }
