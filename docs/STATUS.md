@@ -70,7 +70,8 @@ Repository: prospera-ross/fox-auto-referrals; use git log for the current revisi
 ## Remaining gaps
 - Genuine authorized-realm Invoice/Payment receipt and processing remain unverified
   locally despite Intuit Support's general successful-delivery assertion.
-- Authenticated live dashboard visual smoke remains blocked by browser automation.
+- Authenticated live dashboard visual smoke passed on desktop via owner screenshots
+  (2026-10-14); mobile-width live check not yet captured.
 - Full CDC/backfill, automatic liability reversal and immutable external audit absent.
 - Ingress logging review, load, retention/deletion, restore/alerts, independent review,
   full ASVS mapping and production provider contracts remain open; G01–08 unsatisfied.
@@ -161,3 +162,13 @@ Keep production blocked; partner PWA/Flutter work follows resolution of this gat
   evidence, which also stops repeated evidence rows. 47 tests pass.
 - Not yet exercised: natural token renewal under the new refresh-failure audit.
 - Intuit case #00230633 can be updated: delivery observed; the gap was a local hold.
+
+## Live dashboard visual smoke — 2026-10-14
+- Owner screenshots after Access login, desktop width, Worker 65f09834: Partners,
+  Leads and Commissions views render with staging badge and owner-only footer.
+- Totals match D1: 1 partner (staging-restaurant, $10.00), 3 leads (1 CLAIMED,
+  2 COMPLETED), 2 PENDING commissions = $20.00, filtered sales $140.40 (86.40 + 54.00),
+  invoices 145 and 153 shown with payment dates.
+- Data note: the 2026-10-09 staging lead carries the owner's real name with synthetic
+  contacts. Left unchanged because it backs the invoice 145 commission; use synthetic
+  names in future tests.
